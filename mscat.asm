@@ -2,9 +2,9 @@
 ;       Slowdos Source Code
 ;
 ;
-;       $Id: mscat.asm,v 1.1 2003/06/15 20:26:25 dom Exp $
+;       $Id: mscat.asm,v 1.2 2003/06/17 17:39:10 dom Exp $
 ;       $Author: dom $
-;       $Date: 2003/06/15 20:26:25 $
+;       $Date: 2003/06/17 17:39:10 $
 ;
 ;	Disc cataloging routines
     
@@ -122,8 +122,8 @@ ncats3:   ld    a,(chanel)	; Direct output to the selected channel
 msccat:   call  mslog		; Log the disc in
           call  gsubst		; Setup for subdirectories
           
-	  ld    hl,0		; Initialise cluster number and num file slots
-          ld    (catdon),hl
+	  xor	a		; Initialise num file slots done
+          ld    (catdon),a
           ld    hl,flags  
           res   2,(hl)  	; Set no files seen flag
 msclop:   ld    de,(cursec)  

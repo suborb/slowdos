@@ -2,9 +2,9 @@
 ;       Slowdos Source Code
 ;
 ;
-;       $Id: mscopy.asm,v 1.4 2003/06/15 21:02:12 dom Exp $
+;       $Id: mscopy.asm,v 1.5 2003/06/17 17:39:10 dom Exp $
 ;       $Author: dom $
-;       $Date: 2003/06/15 21:02:12 $
+;       $Date: 2003/06/17 17:39:10 $
 ;
 ;       Copy routines
 
@@ -232,12 +232,11 @@ nobas2:
           call  wropen  
           pop   de	        ; Get file length back
           pop   hl
-          inc   e	
+	  inc   e
 copy5:    ld    a,h
 	  or    l
 	  or    e
 	  jr    z,copy5_end	; copied all we can
-copy55:	
 	  push  hl	        
           push  de  
           ld    b,0  
@@ -252,7 +251,7 @@ copy55:
 	  or    l
 	  jr    nz,copy5
 	  dec   e
-	  jr    copy55
+	  jr    copy5
 copy5_end:	
           call  wrclos  	; Close the DOS file
           ld    b,0  	        ; Close the +3 file
@@ -388,11 +387,12 @@ cop267:   ld    hl,(rdflen) ; This is initialised by rdope1
           jr    z,copy27
           ld    hl,(temphd+1)	; If we are, pick up the length of file within TAP
           ld    e,0
-copy27:   ld    a,h
+copy27:	  inc   e
+copy275:
+          ld    a,h
 	  or    l
 	  or    e
 	  jr    z,copy27_end
-copy275:		
 	  push  hl	       
           push  de  
           call  rdbyte  	; Read the byte from the MSDOS disc
@@ -405,7 +405,7 @@ copy275:
           dec   hl
           ld    a,h
           or    l
-          jr    nz,copy27
+          jr    nz,copy275
           dec   e
 	  jr    copy275
 copy27_end:	

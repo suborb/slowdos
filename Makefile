@@ -7,8 +7,12 @@ SOURCES = commands.asm fat.asm filename.asm loadsynt.asm mscat.asm  \
 
 all:	master
 
-master:  commands.bin booter.bin
-	./appmake
+master:  joiner commands.bin booter.bin
+	./joiner
+	appmake +zx -b slowdos.bin --org  32768 -o slowdos.tap
+
+joiner: appmake.c
+	gcc appmake.c -o joiner
 
 
 commands.bin: 
@@ -19,5 +23,5 @@ booter.bin:
 
 
 clean:
-	rm -f slowdos.bin *.obj *.sym *~ *.err 
+	rm -f *.bin *.obj *.sym *~ *.err 
 	

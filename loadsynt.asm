@@ -2,9 +2,9 @@
 ;       Slowdos Source Code
 ;
 ;
-;       $Id: loadsynt.asm,v 1.2 2003/06/15 20:26:25 dom Exp $
+;       $Id: loadsynt.asm,v 1.3 2003/06/17 17:39:10 dom Exp $
 ;       $Author: dom $
-;       $Date: 2003/06/15 20:26:25 $
+;       $Date: 2003/06/17 17:39:10 $
 ;
 ;	Handle load/save syntax parsing
 
@@ -516,7 +516,8 @@ mecntl:   ld    bc,(temphd+1)
 
 
 ; Save file routine
-sacntl:   push  hl  		; hl = save address
+sacntl:  
+	  push  hl  		; hl = save address
 sacntl1:  call  wropen  	; Open the file
           pop   de  		; Get the save address back
           ld    c,(ix+16)  	; Pick up the length from the ufia

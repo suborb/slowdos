@@ -2,9 +2,9 @@
 ;	Slowdos Source Code
 ;
 ;
-;	$Id: filename.asm,v 1.2 2003/06/15 21:02:12 dom Exp $
+;	$Id: filename.asm,v 1.3 2003/06/17 17:39:10 dom Exp $
 ;	$Author: dom $
-;	$Date: 2003/06/15 21:02:12 $
+;	$Date: 2003/06/17 17:39:10 $
 ;
 ;	Manipulation of filenames
 
@@ -66,13 +66,12 @@ getst0:   push  hl
           ld    b,c
           call  clfil0		;Initialises b bytes at hl with ' '
           call  rom3  
-          defw  11249  
+          defw  11249  		; de=address, bc=length
           call  wrinit  	;
-          pop   hl  
+          pop   hl  		;Get length back
           and   a  
-          sbc   hl,bc  
+          sbc   hl,bc  		;Check to see if its too long
           jp    c,error_filename
-;          pop   hl  
 ;Some temporary workspace
           ld    hl,gtfisp
           ld    b,c  
@@ -88,7 +87,7 @@ getst0:   push  hl
           jr   z,getsl4 ;it's not..we're reading from, but this ain't
 ;Okay, handling TAP file, so set filename up to be *
           set  1,(hl)    ;wild name
-          pop  hl
+          pop  hl	 ;get dest address back
           ld   a,'*'
           ld   (hl),a
           and  a ;set nz, (nc=not significent)
@@ -96,9 +95,7 @@ getst0:   push  hl
 getsl4:   call  errorn  
           defb   43  ;bad filename - ie none!!
 gets15:
-;gets15:   ld    (getst5),a  
-;          push  bc  
-          push  hl  
+          push  hl  ;save gtfisp
 getst1:   push  hl  
           call  wrcopy  
           pop   hl  
@@ -162,15 +159,13 @@ plafil:   push de
           ex   de,hl
           ld   b,12
           call clfil0
-;ATP de=filename store got from BASIC
-          ex   de,hl
+          ex   de,hl	;hl = source
           pop  de
-;Entry: de=destination filename, hl=from BASIC
-plafi0:   push de
+plafi0:   push de	;save dest
           ld   b,8
           call plafi1
-          ex   de,hl
-          pop  hl
+          ex   de,hl	;de = source
+          pop  hl	;dest
           ld   bc,8
           add  hl,bc
           ld   (hl),'.'
@@ -185,7 +180,6 @@ plafi1:   ld   a,(hl)
           ld   (de),a
           inc  de
           djnz plafi1
-          inc  hl
           ret
 
 
