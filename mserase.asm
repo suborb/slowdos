@@ -2,14 +2,58 @@
 ;       Slowdos Source Code
 ;
 ;
-;       $Id: mserase.asm,v 1.2 2003/06/15 12:20:48 dom Exp $
+;       $Id: mserase.asm,v 1.3 2003/06/15 20:26:25 dom Exp $
 ;       $Author: dom $
-;       $Date: 2003/06/15 12:20:48 $
+;       $Date: 2003/06/15 20:26:25 $
 ;
 ;	Erase command
 
 
+		MODULE	erase
 
+		INCLUDE	"slowdos.def"
+		INCLUDE	"syntax.def"
+
+	;; Errors that we use
+		XREF	errorn
+		XREF	error_notfound
+		XREF	error_filetype
+	;; Other things
+		XREF	settapn
+		XREF	clfiln
+		XREF	clfilen
+		XREF	ckchar
+
+		XREF	discan
+		XREF	disca0
+
+		XREF	swos
+		XREF	swos1
+
+		XREF	rdnxft
+		XREF	link_clusters	
+		XREF	wrfata
+
+		XREF	r_hxfer
+		XREF	uftofin
+		XREF	ckwild
+
+		XDEF	hook_erase
+		XDEF	erase
+		XDEF	getdiroffset
+
+
+fildes:		defs	12,32	; VARIABLE
+
+
+hook_erase:  
+	  call  r_hxfer
+          call  uftofin
+          ld    hl,filen
+          call  ckwild
+          jp    en_ers
+	
+	
 ; Erase command
 ;
 ; Syntax:
@@ -23,8 +67,8 @@ erase:
           call  exptex  	; We want some text
           call  ckenqu  	; Check for end of statement (i.e. delete)
           jp    z,erase6  
-          cp    204 ;TO  	; If not end, TO must follow
-          jp    nz,nonerr  	; If not, then nonsense in basic
+          cp    204      	; If not end, TO must follow
+          jp    nz,error_nonsense ; If not, then nonsense in basic
 
 ; Renaming files
           call  rout32  	
@@ -37,15 +81,15 @@ erase:
           call  getstr  	; Get the second string
           jr    z,eras15  
 eras14:   call  errorn  
-          db    43 		;bad filename  
+          defb  43 		;bad filename  
 eras15:   call  clfilen		; Clear ufia+2, hl = ufia+2
           call  getstr  	; Get the original filename
           jr    nz,eras14  
           call  discan  	; Search for the original filename a = posn
-          jp    nc,filnot	; File not found
+          jp    nc,error_notfound ; File not found
 erase0:   ld    de,(dirsol)	; Get directory sector
           push  de		; Save it
-          call  locate		; Get offset within sector for dir entry
+          call  getdiroffset	; Get offset within sector for dir entry
           push  hl		; Save that too
           ld    hl,sector  	; Copy the read sector to the write sector
           ld    de,wrisec  
@@ -58,13 +102,13 @@ erase0:   ld    de,(dirsol)	; Get directory sector
 erase2:   bit   0,(ix+11)  	; Check for read only flag
           jr    z,eras25  
           call  errorn  
-          db    52 ;read only  
+          defb  52 ;read only  
 eras25:   push  ix		; Save the sector positoin
           ld    hl,fildes  	; Check the new filename for bad characters
           push  hl
           call  ckchar
           pop   hl
-          jp    c,bfnerr	; Bad filename
+          jp    c,error_filename 
           pop   de  		; Copy the new filename over the old one
           push  hl  		; hl = fildes
           ld    bc,8  
@@ -79,7 +123,7 @@ eras25:   push  ix		; Save the sector positoin
           call  discan  	; Scan the disc for the new name
           jr    nc,erase4  	; If found then error
           call  errorn  
-          db    32 ;file exists  
+          defb  32 ;file exists  
 erase4:   pop   de  		; Not found, so write out the directory sector
           jp    swos  
 
@@ -100,8 +144,8 @@ eras64:   call  disca0  	; Scan the disc
           bit   2,(hl)  	; Check to see if we already found something
           ret   nz  		; We did, so exit normally
 erase7:   call  errorn  
-          db    34 		;file not exist  
-erase8:   call  locate		; Offset within directory
+          defb  34 		;file not exist  
+erase8:   call  getdiroffset	; Offset within directory
           push  hl		; Save it
           ld    hl,sector  	; Copy this sector to write sector
           ld    de,wrisec  
@@ -114,11 +158,11 @@ erase8:   call  locate		; Offset within directory
           bit   0,(ix+11) 	; check for read only file
           jr    z,eras81
           call  errorn
-          db    52   		;file read only
+          defb  52   		;file read only
 eras81:   bit   4,(ix+11) 	; can't delete directories
-          jp    nz,bfiltyp
+          jp    nz,error_filetype
 eras82:   bit   3,(ix+11) 	; can't delete volume names
-          jp    nz,bfiltyp
+          jp    nz,error_filetype
           ld    (ix+0),229   	; Blank out first character of name
 ; Chase the FAT trail and zero down clusters occupied by this file
           ld    e,(ix+26)
@@ -130,7 +174,7 @@ eras84:   push  de
           ex    de,hl
           push  hl		; Save next cluster
           ld    bc,0		; Zero out that link
-          call  locimp
+          call  link_clusters
           pop   de		; Get next cluster back
           pop   af		; nc means next cluster is good
           jr    nc,eras84
@@ -150,7 +194,8 @@ eras84:   push  de
 ;Entry:   a=file posn (and 15)
 ;Exit:   hl=offset
 
-locate:	and	15
+getdiroffset:
+	and	15
 	add	A,A
 	ADD	A,A
 	ADD	A,A

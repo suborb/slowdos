@@ -1,0 +1,31 @@
+;
+;       Slowdos Source Code
+;
+;
+;       $Id: syntax.def,v 1.1 2003/06/15 20:26:27 dom Exp $
+;       $Author: dom $
+;       $Date: 2003/06/15 20:26:27 $
+;
+;       Defines for syntax checking
+
+
+		XREF	getdrv	; Get the drive
+		XREF	getdrv1	; Get the drive
+		XREF	getdrv2	; Get the drive
+		XREF	gdrive
+
+		XREF	cksemi	; Check for semicolon, comma or double quote
+		XREF	exptex	; We want a string
+		XREF	ckenqu	; Enquire whether end of statement
+		XREF	ckend	; Check for end of statement/syntax mode
+		XREF	getstr	; Get a string from the stack
+		XREF	rout32	; 
+		XREF	rout24	;
+		XREF	rom3	; Call ROM3 routine
+		XREF	e32_1n	; Advance, and get a number
+		XREF	getnum	; Get number
+		XREF	syntax
+		XREF	readbyte ; Pick up a byte from the BASIC memory map
+
+		XREF	error_nonsense
+		XREF	error_filename

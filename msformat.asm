@@ -2,15 +2,38 @@
 ;	Slowdos Source Code
 ;
 ;
-;	$Id: msformat.asm,v 1.1 2003/06/14 23:08:19 dom Exp $
+;	$Id: msformat.asm,v 1.2 2003/06/15 20:26:26 dom Exp $
 ;	$Author: dom $
-;	$Date: 2003/06/14 23:08:19 $
+;	$Date: 2003/06/15 20:26:26 $
 ;
 ;	Provides routines for formatting discs
 ;
 ;	Discdos: 13/2/1996 Imported into Slowdos 1/12/1997
 
+	
+		MODULE	format
 
+		INCLUDE	"slowdos.def"
+		INCLUDE	"syntax.def"
+
+	;; Other things
+		XREF	settapn
+		XREF	clfilen
+
+		XREF	setchan
+		XREF	messag
+
+		XREF	dodos
+		XREF	swos
+
+		XREF	xdpb
+
+
+		XDEF	format
+		XDEF	seccle
+
+	
+	
 ; Format command. Supported syntax:
 ;
 ; FORMAT Pdd[!][;"discname"]
@@ -29,7 +52,7 @@ format:   call  getdrv           ;loads (curdrv) with the current unit
 forma1:   call  ckenqu		;Check to see if we have the end of statment
           jr    z,forma2
           cp    ';'		;Not end of statement, check for semicolon
-          jp    nz,nonerr
+          jp    nz,error_nonsense
           call  rout32
           call  exptex		;We expect a string
           call  ckend		;We must have end of statement
@@ -43,10 +66,10 @@ forma2:   call  ckend  		;If no discname, check for end of statement
 forma3:   ld    a,0FDh  	;Lower screen
           call  setchan
           call  messag  
-          db    22,1,0  
-          db    'ARE YOU SURE (Y/N)'  
-          db    '?'  
-          db    255  
+          defb  22,1,0  
+          defm  "ARE YOU SURE (Y/N)"
+          defb  '?'  
+          defb  255  
           call  confim 		;Returns z if [yY] is pressed
           ret   nz  		;User not sure, so exit
 
@@ -191,3 +214,30 @@ setup4:	  add	A,(ix+20)
           pop   de  
           pop   bc  
           ret
+
+
+; Wait for a keypress
+; Exit:		z = [Yy] was pressed, nz = otherwise
+
+confim:   set   5,(iy+2)
+          call  rom3
+          defw  15D4h ;Wait key
+          and 223
+          cp 'Y'
+          ret
+	          
+;MSDOS standard specification
+          
+dispec:   defb    0Ebh,034h,090h  
+          defm    "SPDOS3.3"
+          defw    512  ;Sector size  
+          defb    2    ;Cluster size  
+          defw    1    ;Reserved sec  
+          defb    2    ;No FAT tabs  
+          defw    70h  ;Dir slots  
+          defw    5A0h ;Secs/Disc  
+          defb    0F9h ;Media descrip  
+          defw    3    ;Secs/FAT  
+          defw    9    ;Secs/Track  
+          defw    2    ;Tracks/cycle  
+          defw    0    ;Hidden secs  

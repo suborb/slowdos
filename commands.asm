@@ -2,39 +2,66 @@
 ;       Slowdos Source Code
 ;
 ;
-;       $Id: commands.asm,v 1.1 2003/06/14 23:08:18 dom Exp $
+;       $Id: commands.asm,v 1.2 2003/06/15 20:26:24 dom Exp $
 ;       $Author: dom $
-;       $Date: 2003/06/14 23:08:18 $
+;       $Date: 2003/06/15 20:26:24 $
 ;
 ;	Main entry point for Slowdos
 
 
+		MODULE	entry
+		INCLUDE "slowdos.def"
+	
 
-;New start up file for SLOWDOS
-;Hacked from DiSCDOS file hook1.asm
-;Removed all the hook code crap
-;14/2/98 - adding in a few commands
-;18/2/98 - modifying r_wropen to consider headerless
-;19/2/98 - commenting out command stuff
-;20/2/98 - sorting out old discdos hook code stuff...
-;23/2/98 - inserting in systen calls (note new name!!!)
-;27/3/98 - new version number 2.31
+		XREF	syntax
+		XREF	readbyte
+		XREF	rout24
 
-;hkspst:   equ   23411  
-;hkhlst:   equ   23728  
-          
-;Need to change this equs
-;wrisec:   equ   63968  
-;sector:   equ   46080  ;64960  
+		XREF	mslog
+		XREF	hook_rdopen
+		XREF	hook_wropen
+		XREF    hook_erase
+		XREF	hook_mscat
+		XREF    hook_catmem	
+		XREF	rdbyte
+		XREF	rdblok
+		XREF	wrblok
+		XREF	wrbyte
+		XREF	wrclos
+		XREF	snpcnt
+		XREF	movsdie
+		XREF	dcheat	; Cheating bit in dodos
+		XREF	dodos
 
-;ROM3 equs 
-getin1:   equ   11249  
-fnint1:   equ   1E94h  
-fnint2:   equ   1E99h  
-          
+		
+		XREF	format
+		XREF	erase
+		XREF	load
+		XREF	merge
+		XREF	save
+		XREF	verify
+		XREF	poke
+		XREF	cat
+		XREF	copy
+		XREF	move
+
+
+		XDEF	rom3
+		XDEF	errorn
+		XDEF	synexe
+		XDEF	r_hxfer
+	
+		org	49152
+
+	
           jp    init  		; This is address 49152
           jp    hkent		; This is address 49155
-          
+
+	
+spstor:		defw	0	; VARIABLE
+
+	
+	          
 ; Copy our structures over to the printer buffer area. We intercept
 ; the various error routines that pass between the ROMS
 
@@ -70,12 +97,8 @@ errpat:   di    		;1
           ei    		;1
 SFAIL0:	  jp	9530
           
-page:     db    0  
-hksthl:   dw    0  
           
-          db    'SLOWDOS v2.4 '
-          db    '(C) 24.02.2001 D.J.'
-          db    'MORRIS'
+          defm  "SLOWDOS v2.5 (C) 15.06.2003 D.J.MORRIS"
 
 intro:    ld    hl,23388  
           ld    b,(hl)  
@@ -144,7 +167,7 @@ retadd:   ld    hl,0
           ei    
           ret   
           
-dossp:    dw    23552  
+dossp:    defw    23552		; VARIABLE alternate stack pointer
           
 routca:   out   (c),a  
           ex    af,af'  
@@ -195,57 +218,29 @@ hkext:    ld   hl,flags3
 hkent1:   ld   sp,0
           ret
 
-          
 
 
-hktabl:   dw   mslog
-          dw   r_getpar
-          dw   r_rdopen
-          dw   rdbyte
-          dw   rdblok  ;de=addr, bc=length
-          dw   r_wropen
-          dw   wrbyte
-          dw   wrblok
-          dw   wrclos
-          dw   r_erase
-          dw   snpcnt
-          dw   r_mscat
-          dw   r_catmem
-          dw   movsdie  ;de=start of text, bc=length
-;          dw   r_tread
-;ix=ufia
-r_rdopen: call r_hxfer
-          jp   rdopen
-r_wropen: call r_hxfer
-;Have to check for long filetype
-;long filettpe indicates headerless file
-          ld   hl,(ufia+16)
-          ld   (wrflen),hl
-          ld   hl,0
-          ld   (wrflen+2),hl
-          ld   hl,flags
-          res  5,(hl)
-          ld   a,(ufia+15)
-          cp   5
-          jr   nz,r_wrope1
-          set  5,(hl)
-r_wrope1: jp   wropen
-r_erase:  call r_hxfer
-          call uftofin
-          ld   hl,filen
-          call ckwild
-          jp   en_ers
-r_catmem: ex   de,hl
-          ld   (dumadd2+1),hl
-          inc  hl
-          ld   (dumadd+1),hl
-          ld   hl,flags3
-          set  7,(hl)
-r_mscat:  call r_hxfer
-          call uftofin
-          jp   ncats3
-;r_tread:  call r_hxfer
-;          jp   tread2
+	
+		          
+
+
+hktabl:   defw   mslog
+          defw   r_getpar
+          defw   hook_rdopen
+          defw   rdbyte
+          defw   rdblok  ;de=addr, bc=length
+          defw   hook_wropen
+          defw   wrbyte
+          defw   wrblok
+          defw   wrclos
+          defw   hook_erase
+          defw   snpcnt
+          defw   hook_mscat
+          defw   hook_catmem
+          defw   movsdie  ;de=start of text, bc=lengt
+
+
+
 r_getpar: ld   de,temphd
           ret
 r_hxfer:  push ix
@@ -258,7 +253,10 @@ r_hxfer:  push ix
           ret
 
 
-
+errorn:   pop   hl  
+          ld    a,(hl)  
+          ld    (iy+0),a  
+          jr   scan1
 
 
           
@@ -273,23 +271,23 @@ scan:     ld    hl,flags
 scan0:    ld    hl,flags  
           res   7,(hl)  
           set   0,(hl)  
-SFAIL1	ld	hl,9530
+SFAIL1:		ld	hl,9530
 	ret
 
           
 ;Error return - also for non recognized command
 ;Check to see if executing system call
-scan1:    ld   hl,flags3
-          and  a
-          bit  5,(hl)
-          jp   nz,hkext
+scan1:    ld    hl,flags3
+          and   a
+          bit   5,(hl)
+          jp    nz,hkext
           call  syntax
           jr    nz,scan12  
           ld    hl,(23645)  
           ld    (23647),hl  
 scan12:   ld    hl,flags  
           set   0,(hl)  
-SFAIL2	ld	hl,9530
+SFAIL2:		ld	hl,9530
 	jp	intro0
           
 ;Exit when running program
@@ -310,7 +308,7 @@ write:    set   7,(iy+48)
           res   7,(iy+48)  
 writ01:   ld    hl,(23645)  
 write0:   dec   hl  
-          call  gfropg
+          call  readbyte
           cp    206  
           jr    c,write0  
           ld    (23645),hl  

@@ -1,16 +1,87 @@
-;Save command for Slowdos -
-;cobbled together out of DiSCDOS
-;and old version of slowdos
-;15/12/97 - yes..sub dirs do work!!! Hurrah!!!!!
-;20/2/98  - added in save to .TAP - works - hurrah!!!
+;
+;       Slowdos Source Code
+;
+;
+;       $Id: mssave.asm,v 1.1 2003/06/15 20:26:26 dom Exp $
+;       $Author: dom $
+;       $Date: 2003/06/15 20:26:26 $
+;
+;       Routines concerned with saving files from disc
+
+		MODULE	save
+		INCLUDE	"slowdos.def"
+		INCLUDE	"syntax.def"
+
+	;; Routines that are external to this module
+		XREF	r_hxfer
+		XREF	uftofin
+		XREF	ckchar
+
+		XREF	errorn
+
+		XREF	discan
+		XREF	cksub
+		XREF	seccle
+
+		XREF	wrnxft
+		XREF	link_clusters
+
+		XREF	getsec
+
+		XREF	sros
+		XREF	swos
+		XREF	file_signature	
+
+		XREF	mslog
+		XREF	clfil0
+		XREF	wrcopy
+		XREF	rdini1
+		XREF	rdcop1
+
+		XREF	pdconv
+		XREF	getdiroffset
+		XREF	wrifat
 
 
+	;; Labels that we export
+		XDEF	hook_wropen
+		XDEF	wropen
+		XDEF	wrblok
+		XDEF	wrbyte
+		XDEF	wrinit
+		XDEF	wrclos
 
+
+wrflen:		defw	0,0	; VARIABLE - writing file length
+wrdsec:		defw	0	; VARIABLE - sector for first free dir slot
+wrdpos:		defb	0	; VARIABLE - directory position for free slot
+wrclco:		defb	0	; VARIABLE - sectors to go in cluster
+wrtogo:		defw	0	; VARIABLE - bytes left in write sector
+wrsepo:		defw	0	; VARIABLE - current position in sector
+wrclus:		defw	0	; VARIABLE - current writing cluster
+wrclse:		defw	0	; VARIABLE - current writing sector
+	
+
+
+hook_wropen: 
+	  call r_hxfer
+          ld   hl,(ufia+16)
+          ld   (wrflen),hl
+          ld   hl,0
+          ld   (wrflen+2),hl
+          ld   hl,flags
+          res  5,(hl)
+          ld   a,(ufia+15)
+          cp   5
+          jr   nz,wropen
+          set  5,(hl)
+	;; Fall into wropen
+	
 ; Open a file to be write
 ; Entry: ix=ufia
 wropen:   call  uftofin	    ; Copy ufia to filen, exit hl = ufia+2
           call  ckchar	    ; Check filename and uppercase it
-          jp    c,bfnerr	; Filename was bad
+          jp    c,error_filename
           ld    hl,flags3	
           bit   1,(hl)	    ; Writing to a .TAP file?
           jp    nz,wropetap	; If so, then go there
@@ -19,12 +90,12 @@ wropen:   call  uftofin	    ; Copy ufia to filen, exit hl = ufia+2
           ld    (wrdsec),hl
           jr    nc,wrope1  	; If filename doesn't exist then dont error
           call  errorn
-          db    48 	        ;file already exists
+          defb  48 	        ;file already exists
 wrope1:   ld    a,(frepos)  ; Get the free directory slot
           and   a  
           jr    nz,wrope2  	; We have a free slot
           call  cksub	    ; Check to see if we're in subdirectory
-          jr    z,nodiren	; We're not in subdir, so we need to error
+          jr    z,error_dirfull ; We're not in subdir, so we need to error
 ; We're in a subdirectory, try to allocate more space
           call  seccle	    ; Clear the write sector
           call  wrnxft	    ; Find a free cluster, de = new cluster
@@ -35,11 +106,11 @@ wrope1:   ld    a,(frepos)  ; Get the free directory slot
 		; we have access to this since we searched the
 		; directory for the filename
           push  bc  	    ; Save new cluster
-          call  locimp	    ; Link the two clusters together
+          call  link_clusters	    ; Link the two clusters together
           pop   de	        ; Get new cluster back
           ld    bc,0FFFh	; Set next cluster to be "end of chain"
           push  de	        ; Save new cluster
-          call  locimp	    ; Terminate the cluster chain
+          call  link_clusters	    ; Terminate the cluster chain
           pop   de	        ; Get new cluster back
           call  getsec	    ; Convert to DOS sector number
           ld    (wrdsec),de	; Save it for later
@@ -50,8 +121,9 @@ wrope1:   ld    a,(frepos)  ; Get the free directory slot
           call  swos	    ; Write the second sector of the cluster
           ld    a,1
           jr    wrope2
-nodiren:  call  errorn  	; No space left in diretory
-          db    51  
+error_dirfull:
+	  call  errorn  	; No space left in diretory
+          defb  51  
 ;a=file number
 ;Clear the directory setup
 ; Entry:	a = free directory slot
@@ -79,7 +151,7 @@ wrope3:   ld    (hl),a
           ld    hl,flags
           bit   5,(hl)	    ; Check to see if we want a header or not
           jr    nz,wrope5	; If we don't skip over header writing
-          ld    hl,signat	; Copy over the +3DOS file header
+          ld    hl,file_signature	; Copy over the +3DOS file header
           ld    de,wrisec
           ld    bc,11
           ldir
@@ -132,7 +204,7 @@ wrope5:   ld    hl,(wrsepo)	; Set up the file length byte counter
           call  wrnxft	    ; Try to get a free cluster
           jr    z,wrope6	; We succeeded
 dfull:    call  errorn
-          db    50          ;Disc full
+          defb  50          ;Disc full
 wrope6:   ld    (dirmse+26),de ; Save the first cluster into the directory entry
           ld    (wrclus),de	; Set up the current cluster
           call  getsec	    ; Convert to DOS sector
@@ -280,7 +352,7 @@ wnfse2:   ld    de,(wrclse)	; Write out the current sector
           ld    de,(wrclus)	; Pick up the current cluster
           ld    bc,1	    ; A fake cluster
           push  de	        ; Save current cluster
-          call  locimp	    ; Fake lock so we don't get the same cluster again
+          call  link_clusters	    ; Fake lock so we don't get the same cluster again
           call  wrnxft	    ; Get a new cluster
           jp    nz,dfull	; No new cluster, disc full
 wnfse3:   ld    (wrclus),de	; Save the new cluster
@@ -288,7 +360,7 @@ wnfse3:   ld    (wrclus),de	; Save the new cluster
           ld    b,d
           pop   de	        ; Get back the old cluster
           push  bc	        ; Stack the new cluster
-          call  locimp	    ; Link the two together
+          call  link_clusters	    ; Link the two together
           pop   de	        ; Get back the new cluster
           call  getsec	    ; Convert to DOS sector
           ld    a,(diskif+13) ; Number of sectors in cluster
@@ -307,7 +379,7 @@ wrclos:   ld    hl,flags3
 
 wrclos0:  ld    bc,0FFFh	; End of cluster chain marker
           ld    de,(wrclus)	; Current cluster
-          call  locimp	    ; Link together
+          call  link_clusters	    ; Link together
           ld    de,(wrclse)	; Pick up last cluster
           call  swos	    ; And write it to disc
           ld    de,(wrdsec)	; Get directory cluster
@@ -322,7 +394,7 @@ wrclos0:  ld    bc,0FFFh	; End of cluster chain marker
           ld    (dirmse+30),hl
           ld    a,(wrdpos)	; Pick up free directory entry indicator
           dec   a	        ; Decrement it
-          call  locate	    ; And pick up offset
+          call  getdiroffset    ; And pick up offset
           ld    de,wrisec	; Add to start of sector
           add   hl,de
           ld    de,dirmse	; Copy our directory entry into the dir sector
@@ -334,70 +406,4 @@ wrclos0:  ld    bc,0FFFh	; End of cluster chain marker
           jp    wrifat	    ; Write the updated FAT table to disc
           
           
-;Find a free cluster (writing!!)
-;Exit:    de=cluster
-;          z=got a cluster
-;         nz=no more clusters
-          
-wrnxft:   ld    de,0	    ; Cluster number
-          ld    bc,713	    ; FIXME: Number of clusters in total
-          ld    hl,fattab	; Start of the FAT table
-wrnxf1:   ld    a,(hl)	    ; Byte aligned clusters
-          inc   hl	        ; Increment to bits 3 - 0
-          and   a	        ; If low byte is non zero try nibble aligned
-          jr    nz,wrnxf2
-          ld    a,(hl)	    ; Now high 4 bits
-          and   15
-          ret   z	        ; Was zero, thus cluster is available
-;On a half in FAT table
-wrnxf2:   inc   de
-          ld    a,(hl)	    ; Test bits 0 - 4 of nibble aligned cluster
-          inc   hl	        ; Increment bits 8 -11 of nibble aligned
-          and   240	        ; Test bits 0 - 4
-          jr    nz,wrnxf3	; In use
-          ld    a,(hl)	    ; Test bits 8 -11
-          and   a
-          ret   z	        ; Was zero, cluster available
-wrnxf3:   inc   hl
-          inc   de	        ; Increment cluster number
-          dec   bc	        ; Decrement number of clusters available
-          ld    a,b
-          or    c    
-          jr    nz,wrnxf1
-          inc   a	        ; No clusters available, returns nz
-          ret
 
-;Mark a FAT in the table as being used
-;Entry:   de=current cluster
-;         bc=next cluster
-;Exit:    de=corrupt
-
-locimp:   ld    h,d	        ; hl = current cluster
-          ld    l,e
-          add   hl,hl       ;x2
-          add   hl,de	    ;x3
-          srl   h	        ;/2
-          rr    l
-          ld    de,fattab
-          jr    c,locim1    ; if carry then cluster position starts on nibble
-          add   hl,de	    ; Add in the start of the FAT table
-          ld    (hl),c	    ; Place low byte
-          inc   hl
-          ld     a,(hl)	    ; Mask out high nibble and place it
-          and   240
-          or    b
-          ld    (hl),a
-          ret
-locim1:   add   hl,de	    ; Add in to start of FAT table
-          ld    a,4	        ; Shift left the cluster link to place
-locim2:   sla   c
-          rl    b
-          dec   a
-          jr    nz,locim2
-          ld    a,(hl)	    ; And then store it
-          and   15
-          or    c
-          ld    (hl),a
-          inc   hl
-          ld    (hl),b
-          ret

@@ -2,14 +2,53 @@
 ;       Slowdos Source Code
 ;
 ;
-;       $Id: simpleco.asm,v 1.1 2003/06/14 23:08:19 dom Exp $
+;       $Id: msmove.asm,v 1.1 2003/06/15 20:26:26 dom Exp $
 ;       $Author: dom $
-;       $Date: 2003/06/14 23:08:19 $
+;       $Date: 2003/06/15 20:26:26 $
 ;
 ;	Some supposedly simple commands
 
 
 
+		MODULE	move
+
+		INCLUDE	"slowdos.def"
+
+		INCLUDE	"syntax.def"
+		INCLUDE "printing.def"
+	
+	;; Errors that we
+		XREF	errorn	
+		XREF	error_filetype
+		XREF	error_notfound
+	
+	;; Other things
+		XREF	settapn
+		XREF	settap
+
+		XREF	clufia
+		XREF	clfilen
+
+		XREF	ckext
+		XREF	ckwild
+		XREF	ckwild_length
+
+
+		XREF	rdopen
+		XREF	rdbyte
+
+		XREF	wropen
+	
+		XREF	wrclos
+
+		XREF	discan
+		XREF	mslog
+		
+
+		XDEF	move
+		XDEF	movsdie
+
+		XDEF	tapnam	; export the .TAP name
 
 ; Move command
 ;
@@ -29,10 +68,10 @@ move:     call  rout32
           call  cksemi  	; We want a semi-colon
           call  exptex  	; Now we expect a string
           cp    204 		; TO - copying to streams
-          jp    nz,nonerr  	; No TO, Nonsense in BASIC
+          jp    nz,error_nonsense  	; No TO, Nonsense in BASIC
           call  rout32  	; Get next character
           cp    '#'  		; Must be a #, otherwise its nonsense
-          jp    nz,nonerr  
+          jp    nz,error_nonsense  
           call  e32_1n  	; Now we expect a number
           call  ckend  		; And the end of the statement
 
@@ -73,7 +112,7 @@ tread:    call  rout32		; Find out if it's a P or a T
           cp    'P'		; It's a subdirectory
           jp    z,movsdi
           cp    'T'
-          jp     nz,nonerr  	; Not a .TAP, so Nonsense in BASIC
+          jp     nz,error_nonsense  	; Not a .TAP, so Nonsense in BASIC
 
 ; .TAP file handling
           call getdrv2		; Skip over the drive specifier
@@ -107,7 +146,7 @@ tread11:  cp   191  		; IN
           jr   nz,tread19
           ld   hl,flags3	; If we're already writing then we can't have IN
           bit  1,(hl)
-          jp   nz,nonerr	; So Nonsense in BASIC
+          jp   nz,error_nonsense	; So Nonsense in BASIC
           call rout32
 tread19:  call ckend		; IT really is the end
 
@@ -116,12 +155,12 @@ tread19:  call ckend		; IT really is the end
           res  6,(hl)
           call clufia		; Clear ufia+2, exit hl = ufia+2
           call getstr		; Get the string
-          jp   nz,bfnerr 	; Returned a wild card, can't have that!
+          jp   nz,error_filename ; Returned a wild card, can't have that!
 
 tread2:   ld   de,ufia+11	; Check for .TAP suffix
           ld   hl,tapiden
           call ckext
-          jp   nz,bfiltyp	; Not there, so bad filetype
+          jp   nz,error_filetype ; Not there, so bad filetype
 
 ; Now try to open the .TAP file on disc
           ld   ix,ufia
@@ -148,8 +187,8 @@ tread3:   res  1,(hl)		; hl = flags3
           set  1,(hl)		; Indicate that we're writing to a .TAP file
           ret
 
-tapnam:   ds   8,0		;VARIABLE
-tapiden:  db   'TAP'
+tapnam:   defs   8,0		;VARIABLE
+tapiden:  defm   "TAP"
 
 ;Move into a subdirectory..
 
@@ -172,7 +211,7 @@ movsdi1:  call cksemi		; We want a semicolon/separator
 
           call clfilen		; Clear the filename, hl = filen
           call rom3		; Get address of string
-          dw   11249		; Leaves de = address, bc = length
+          defw getin1		; Leaves de = address, bc = length
 movsdie:  ld   a,c		; Length is 0, go back to the root dir
           or   b
           jr   z,movsdi0 
@@ -200,20 +239,20 @@ movsdi9:  ld   a,b  		; If its longer than 8 characters then its wrong
           ret  z   
           ld   hl,filen  	; filen is where dirname is kept
           ld   b,8
-          call ckwild		; Check to see if its wild
+          call ckwild_length	; Check to see if its wild
           ld   hl,flags
           bit  1,(hl)
-          jp   nz,bfnerr	; We don't like wildcard directories
+          jp   nz,error_filename ; We don't like wildcard directories
           exx
           push hl		; Save the address and length of string 
           push bc
           exx
           call discan		; Scan the disc for the filename hl=dir entry
-          jp   nc,filnot 	; File doesn't exist
+          jp   nc,error_notfound ; File doesn't exist
 movsdi5:  ld   bc,11		; Skip to the file type
           add  hl,bc
           bit  4,(hl)		; Check for subdir flag
-          jp   z,bfiltyp     	; Not set, so bad filename
+          jp   z,error_filetype ; Not set, so bad filename
           ld   c,15
           add  hl,bc		; Skip to cluster start
           ld   e,(hl)		; Pick up cluster
@@ -244,7 +283,7 @@ movsdi6:  ld   (sdclus),de	; Save subdirectory cluster
 ;	   a = character picked up
 ;          z = end of current thing
 
-movgch:   call gfropg	; Get character from BASIC
+movgch:   call readbyte ; Get character from BASIC
           inc  hl	; Increment address
           dec  bc	; Decrement counter
           ld   e,a
@@ -263,7 +302,7 @@ movgch:   call gfropg	; Get character from BASIC
           
 ;uread:    call  rout32  
 ;          cp    '#'  
-;          jp   nz,nonerr
+;          jp   nz,error_nonsense
 ;Change +3 user area
 ;uread0:   call  e32_1n  
 ;          call  ckend  
@@ -281,42 +320,12 @@ movgch:   call gfropg	; Get character from BASIC
 ;          jp    dodos  
 
           
-;
-; Poke@ command. Supported syntax:
-;
-; POKE @a1,d1
-;
-; If d1 < 256 then 8 bit poke, otherwise 16 bit poke
-;
- 
-          
-poke:     call  rout32  
-          cp    '@'  		; Check for '@'
-          jp    nz,nonerr  	; No? Call Nonsense in BASIC
-          call  e32_1n  	; We expect one number
-          cp    ','  		; Then a comma
-          jp    nz,nonerr  	; No comma, Nonsense in BASIC
-          call  e32_1n  	; We now want another number
-          call  ckend  		; And end of statement
-          call  getnum		; Get the value from the stack
-          push  bc  		; Store it
-          call  getnum		; Get the address
-          ld    h,b  		; Get it into hl
-          ld    l,c  
-          pop   bc  		; Now get the value back
-          ld    (hl),c  	; And poke it
-          inc   hl  		; Increment the address
-          ld    a,b  		; Check if the high byte of the value != 0
-          and   a  
-          ret   z		; It is zero then return
-          ld    (hl),b  	; Else poke it
-	  ret			; Command finished
 
 ;Fun cls routine
           
 ;cls:      call  rout32  
 ;          cp    '#'  
-;          jp    nz,nonerr  
+;          jp    nz,error_nonsense  
 ;          call  rout32  
 ;          call  ckend  
 ;          ld    hl,56  

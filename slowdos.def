@@ -1,0 +1,65 @@
+;
+;       Slowdos Source Code
+;
+;
+;       $Id: slowdos.def,v 1.1 2003/06/15 20:26:27 dom Exp $
+;       $Author: dom $
+;       $Date: 2003/06/15 20:26:27 $
+;
+;       Defines etc for Slowdos
+
+
+
+; Routines in ROM3
+
+	defc	rhlxde	= $30A9
+	defc	getin1	= 11249
+	defc	fnint1	= $1E94
+	defc	fnint2	= $1E99
+
+
+; Parameters for the program and storage in page 7
+
+	defc	syspag	= 7
+
+	defc	fattab	= 61000		; Where the FAT table will be kept
+	defc	wrisec	= 63968		; 512 bytes for writing
+	defc	sector	= 64960		; 512 bytes for reading
+
+	defc	dirmse	= 65472		; 32 bytes for creating dir entry
+	defc	diskif	= 65504		; 30 bytes for disk specification
+	
+
+
+	;; Variables we export
+		XREF	dirsec
+		XREF	discou
+		XREF	dispos
+		XREF	dirsol
+		XREF	sdclus
+		XREF	filen
+
+
+	;; External variables
+		XREF	curdrv
+		XREF	chanel
+		XREF	catdon
+		XREF	cursec
+		XREF	fileno
+		XREF	curfat
+		XREF	frepos
+		XREF	ufia	
+		XREF	intafil
+
+		XREF	namep3
+		XREF	flags
+		XREF	flags2
+		XREF	flags3
+		XREF	pdname
+		XREF	rdflen
+		XREF	temphd
+		XREF	page
+		XREF	rotsta	; Start of root directory
+		XREF	rotlen	; Length of root directory
+		XREF	sectgo
+		XREF	secpos

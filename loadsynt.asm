@@ -2,14 +2,47 @@
 ;       Slowdos Source Code
 ;
 ;
-;       $Id: loadsynt.asm,v 1.1 2003/06/14 23:08:18 dom Exp $
+;       $Id: loadsynt.asm,v 1.2 2003/06/15 20:26:25 dom Exp $
 ;       $Author: dom $
-;       $Date: 2003/06/14 23:08:18 $
+;       $Date: 2003/06/15 20:26:25 $
 ;
 ;	Handle load/save syntax parsing
 
+
+		MODULE	loadsave
+		INCLUDE	"slowdos.def"
+		INCLUDE	"syntax.def"
+
+	;; Error functions
+		XREF	errorn
+
+
+		XREF	usezer
+		XREF	expt1n
+
+		XREF	clufia
+
+		XREF	rdopen
+		XREF	rdblok
+		XREF	wropen
+		XREF	wrblok
+		XREF	wrclos
+	
+		XREF	wos
+		XREF	ros
+
+	;; Exported routines
+		XDEF	load
+		XDEF	save
+		XDEF	merge
+		XDEF	verify
+		XDEF	snpcnt
+
+		XDEF	settapn
+		XDEF	settap
+	
  
-comtyp:   db    0
+command_type:	defb	0	; VARIABLE - command required
           
 ; Load/save/merge syntax checking
 ; Syntax:
@@ -21,10 +54,9 @@ comtyp:   db    0
 ; LOAD @dd,tt,ss,aa
 
           
-;The beefy load routine...
           
 load:     ld    a,1  		; Indicate "LOAD"
-load0:    ld    (comtyp),a  
+load0:    ld    (command_type),a  
           call  rout32  	; Check for '@'
           cp    '@'  
           jp    z,seclod  	; Was a '@' goto the sector load routine
@@ -39,7 +71,7 @@ verify:   ld    a,2  		; Indicate "VERIFY"
 ;And the merge routine
           
 merge:    ld    a,3  		; Indidcate "MERGE"
-merge1:   ld    (comtyp),a  
+merge1:   ld    (command_type),a  
           call  rout32  
                     
           
@@ -48,7 +80,7 @@ loadud:   call  getdrv1         ; Get drives, enter with next char in a
           
 ;0=save, 1=load,2=verify,3=merge
 
-savetc:   ld    a,(comtyp)
+savetc:   ld    a,(command_type)
           call  settap		;??
           ld    ix,ufia  
           call  exptex  	; We want a string
@@ -62,7 +94,7 @@ savetc:   ld    a,(comtyp)
           jr    z,sadata	; Valid filename
           ld    hl,flags3	; Filename is wild, check if in .TAP mode
           bit   0,(hl)    
-          jp    z,bfnerr 	; Not in .TAP mode - bad filename
+          jp    z,error_filename ; Not in .TAP mode - bad filename
 sadata:   call  rout24  	; Check for a '!'
           cp    '!'
           jr    nz,sadat0
@@ -71,29 +103,29 @@ sadata:   call  rout24  	; Check for a '!'
           call  rout32		; Get next character
 sadat0:   cp    228     	; DATA
           jr    nz,sascr  
-          ld    a,(comtyp)  	; Check command, if MERGE then Nonsense in BASIC
+          ld    a,(command_type)  	; Check command, if MERGE then Nonsense in BASIC
           cp    3  
-          jp    z,nonerr  
+          jp    z,error_nonsense  
           call  rout32  
           call  rom3  
-          dw    28B2h ; look vars  
+          defw  28B2h ; look vars  
           set   7,c  
           jr    nc,savold  
           ld    hl,0  
-          ld    a,(comtyp)  
+          ld    a,(command_type)  
           dec   a  
           jr    z,savnew  
           call  errorn  
-          db    1   ;var not found  
-savold:   jp    nz,nonerr  
+          defb  1   ;var not found  
+savold:   jp    nz,error_nonsense  
           call  syntax  
           jr    z,sadat1  
           inc   hl  
 ;Copy the length...
-          call gfropg
+          call  readbyte
           ld    (ix+16),a  
           inc   hl  
-          call gfropg
+          call  readbyte
           ld    (ix+17),a  
           inc   hl  
 ;Variable name...
@@ -109,7 +141,7 @@ savtyp:   ld    (ix+15),a
 sadat1:   ex    de,hl  
           call  rout32  
           cp    ')'  
-          jp    nz,nonerr  ;nonerr  
+          jp    nz,error_nonsense  ;error_nonsense  
           call  rout32  
           call  ckend  
           ex    de,hl  
@@ -117,9 +149,9 @@ sadat1:   ex    de,hl
 
 sascr:    cp    170  		;SCREEN$
           jr    nz,sacod  
-          ld    a,(comtyp)  	; MERGE is not an appropriate type
+          ld    a,(command_type)  	; MERGE is not an appropriate type
           cp    3  
-          jp    z,nonerr  
+          jp    z,error_nonsense  
           call  rout32  
           call  ckend  		; Check for end
           ld    (ix+16),0  	; Set up file length and start for SCREEN$
@@ -130,15 +162,15 @@ sascr:    cp    170  		;SCREEN$
           jr    satyp3  	; hl = load address
 sacod:    cp    175  		;CODE
           jr    nz,saline  
-          ld    a,(comtyp)  	; Once more MERGE is not an appropriate command
+          ld    a,(command_type)  	; Once more MERGE is not an appropriate command
           cp    3 
-          jp    z,nonerr  
+          jp    z,error_nonsense  
           call  rout32  
           call  ckenqu  	; Check for end
           jr    nz,sacod1  	; Jump if more parameters
-          ld    a,(comtyp)  	; SAVE with no parameters makes no sense
+          ld    a,(command_type)  	; SAVE with no parameters makes no sense
           and   a  
-          jp    z,nonerr  
+          jp    z,error_nonsense  
           call  usezer  	; Stack 0 for first parameter
           jr    sacod2  
 
@@ -146,9 +178,9 @@ sacod1:   call  expt1n  	; Get a number (we already have 1 char)
           call  rout24  	; Check for comma
           cp    ','  
           jr    z,sacod3  
-          ld    a,(comtyp)  	; If SAVE and only one parameter then nonsense
+          ld    a,(command_type)  	; If SAVE and only one parameter then nonsense
           and   a  
-          jp    z,nonerr  
+          jp    z,error_nonsense  
 sacod2:   call  usezer  	; Stack 0 for second parameter
           jr    sacod4
 sacod3:   call  e32_1n  	; Get second parameter
@@ -182,9 +214,9 @@ snap0:    ld    a,b
           ld    (lmode+1),a	; Save locked mode
           ld    (cpbuff),hl	; Save the printer buffer copying opcode
           call   ckend  	; Check for end
-          ld     a,(comtyp)  	; Anything apart from LOAD doesn't make sense
+          ld     a,(command_type)  	; Anything apart from LOAD doesn't make sense
           dec    a  
-          jp     nz,nonerr  
+          jp     nz,error_nonsense  
           ld     (ix+15),4  	; Indicate snapshot type
           jr     saall  
 
@@ -196,9 +228,9 @@ salin1:   cp    202 		;LINE
           ld    (ix+19),80  
           jr    satyp0  
 
-salin0:   ld    a,(comtyp)  	; We can't have a LINE without SAVE type
+salin0:   ld    a,(command_type)  	; We can't have a LINE without SAVE type
           and   a  
-          jp    nz,nonerr  
+          jp    nz,error_nonsense  
           call  e32_1n  	; Get number
           call  ckend  		; Check for end of statemetn
           call  getnum		; Get line number off the stack
@@ -216,7 +248,7 @@ satyp0:   ld    (ix+15),0  	; Indicate BASIC type
           ld    (ix+20),l  	; And place in ufia
           ld    (ix+21),h  
           ex    de,hl  		; hl = (23635) = load address
-saall:    ld    a,(comtyp)  	; If commmand type is SAVE, goto save routine
+saall:    ld    a,(command_type)  	; If commmand type is SAVE, goto save routine
           and   a  
           jp    z,sacntl  
           cp    2  		; If its verify, then silently ignore
@@ -228,13 +260,13 @@ saall0:   ld    a,(temphd)	; Check disc header versus our ufia
           cp    (ix+15)
           jr    z,saall1
           call  errorn
-          db    29  		;Wrong file type
+          defb  29  		;Wrong file type
 saall1:   cp    4  		; If it's a snapshot, goto snapshot handler
           jp    z,snpcnt  
 saall2:   ld    hl,0  		; Modified by above, contains load address
           cp    3  		; CODE filetype
           jr    z,vrcntl  	
-          ld    a,(comtyp)  	; So it must be BASIC/DATA Check for command LOAD
+          ld    a,(command_type)  	; So it must be BASIC/DATA Check for command LOAD
           dec   a  
           jr    z,ldcntl  
           cp    2  		; Check for MERGE
@@ -263,7 +295,7 @@ vrcnt2:   ex    de,hl  		; de = load address, bc = length to load
 ldblok:   jp    rdblok  
           
 repotr:   call  errorn  
-          db    79   		;code length  
+          defb  79   		;code length  
           
 ;For basic progs +arrays
 ldcntl:   ld    de,(temphd+1)   ; File length
@@ -287,7 +319,7 @@ ldcnt2:   ld    de,5
           ld    b,h  
           ld    c,l  
           call  rom3  
-          dw    1F05h  ; test room  
+          defw  $1F05  ; test room  
 lddata:   pop   hl  
           ld    a,(ix+15)  	; If file type is BASIC
           and   a  
@@ -305,7 +337,7 @@ lddata:   pop   hl
           inc   bc  
           ld    (23647),ix  ; xptr  
           call  rom3  
-          dw    19E8h ; reclaim 2  
+          defw  $19E8 ; reclaim 2  
           ld    ix,(23647)  
 lddat1:   ld    hl,(23641)  
           dec   hl  
@@ -317,7 +349,7 @@ lddat1:   ld    hl,(23641)
           ld    a,(ix+19) ;variable  
           push  af  
           call  rom3  
-          dw    1655h  ;make room  
+          defw  $1655  ;make room  
           inc   hl  
           pop   af  
           ld    (hl),a  
@@ -339,12 +371,12 @@ ldprog:   ex    de,hl
           ld    bc,(temphd+1)  
           push  bc  
           call  rom3  
-          dw    19E5h ; reclaim 1  
+          defw  $19E5 ; reclaim 1  
           pop   bc  
           push  hl  
           push  bc  
           call  rom3  
-          dw    1655h ; make room  
+          defw  $1655 ; make room  
           ld    ix,(23647)  
           inc   hl  
           ld    bc,(temphd+5) ;n len  
@@ -364,7 +396,7 @@ ldprg1:   pop   bc
 ;This bit of code will be rewritten
 ;To handle .sna
 
-basreg:   equ  wrisec
+	  defc	basreg = wrisec
 
 snpcnt:   ld   a,23
           ld   (page),a
@@ -461,7 +493,7 @@ valr:     ld   a,0
 snppa3:   ld   sp,0
 snppa4:   ei
           ret
-snppa5:   dw   0
+snppa5:   defw   0		; VARIABLE
 snpend:
           
           
@@ -471,7 +503,7 @@ mecntl:   ld    bc,(temphd+1)
           push  bc  
           inc   bc  
           call  rom3  
-          dw    48 ;bc spaces  
+          defw  48 ;bc spaces  
           ld    (hl),128  
           pop   bc  
           push  de  
@@ -479,7 +511,7 @@ mecntl:   ld    bc,(temphd+1)
           pop   hl  
           ld    de,(23635)  
           call  rom3  
-          dw    08D2h ; me-new-lp  
+          defw  08D2h ; me-new-lp  
           ret   
 
 
@@ -499,13 +531,13 @@ seclod:   call  rout32
           call  gdrive  	; get the drive
           call  rout24  	; we need a comma
           cp    ','  
-          jp    nz,nonerr  
+          jp    nz,error_nonsense  
           call  e32_1n  	; get track
           cp    ','  
-          jp    nz,nonerr  
+          jp    nz,error_nonsense  
           call  e32_1n  	; get sector
           cp    ','  
-          jp    nz,nonerr  
+          jp    nz,error_nonsense  
           call  e32_1n  	; get load address
 seclo0:   call  ckend  		; check for end of statement
           call  getnum		; get address off stack
@@ -514,28 +546,29 @@ seclo0:   call  ckend  		; check for end of statement
           ld    a,b  		; Check for sector > 255
           and   a  
           jr    z,seclo1
-parerr:   call  errorn
-          db    45   ;parameter error
+error_parameter:
+	  call  errorn
+          defb  45   ;parameter error
 seclo1:   ld    a,c  
           ld    (sect),a  
           call  getnum		; get track off disc
           ld    a,b  		; check for track > 255
           and   a  
-          jr    nz,parerr  
+          jr    nz,error_parameter
           ld    a,c  
           ld    (sect+1),a  
 seclo3:   ld    de,(sect)  
           ld    hl,(lodadd)  
-          ld    a,(comtyp)  	; check command type
+          ld    a,(command_type)  	; check command type
           and   a  		; SAVE
           jp    z,wos  
           jp    ros		; READ
 
-lodadd:   dw    0		;VARIABLE
-sect:     dw    0		;VARIABLE
+lodadd:   defw    0		;VARIABLE
+sect:     defw    0		;VARIABLE
 
 ;Routine to set bit 6,(flags) if bit 6,(flags2)..
-;Entry:   a=comtyp - if not relevent set to <>0
+;Entry:   a=command_type - if not relevent set to <>0
 
 settapn:  xor  a
 settap:   ld   hl,flags2

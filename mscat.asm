@@ -2,19 +2,71 @@
 ;       Slowdos Source Code
 ;
 ;
-;       $Id: mscat5.asm,v 1.1 2003/06/14 23:08:18 dom Exp $
+;       $Id: mscat.asm,v 1.1 2003/06/15 20:26:25 dom Exp $
 ;       $Author: dom $
-;       $Date: 2003/06/14 23:08:18 $
+;       $Date: 2003/06/15 20:26:25 $
 ;
 ;	Disc cataloging routines
     
 
-          
-rhlxde:   equ   30A9h            
-          
-          
+		MODULE	catalogue
 
-dirsec:   dw    0	;VARIABLE - sector containing first free dir entry
+		INCLUDE	"slowdos.def"
+		INCLUDE "syntax.def"
+		INCLUDE "printing.def"
+
+	;; External routines
+		XREF	clfilen
+	;; Error handling
+		XREF	errorn
+
+		XREF	getsec
+	
+		XREF	sros
+		XREF	sros1
+
+		XREF	swos
+		XREF	swos1
+
+		XREF	rdnxft
+
+		XREF	r_hxfer
+		XREF	uftofin
+
+		XDEF	hook_catmem
+		XDEF	hook_mscat
+		XDEF	cat
+		XDEF	mslog	
+		XDEF	ncats3
+		XDEF	discan
+		XDEF	disca0
+		XDEF	cksub
+		XDEF	rdfat
+		XDEF	wrfata
+		XDEF	wrifat
+		XDEF	cfile1
+
+       
+clusno:		defb	0	; VARIABLE - catalogue cluster count
+catdon:		defb	0	; VARIABLE - number of root dir slots catalogued   
+
+cursec:		defw	0	; VARIABLE - current sector being catalogued
+fileno:		defb	0	; VARIABLE - Position within directory
+discou:		defb    0       ; VARIABLE, saved file number within dir
+dispos:		defw    0        ; VARIABLE, saved addy within dir
+
+	
+hook_catmem: 
+	  ex    de,hl
+          ld    (dumadd2+1),hl
+          inc   hl
+          ld    (dumadd+1),hl
+          ld    hl,flags3
+          set   7,(hl)
+hook_mscat:  
+	  call  r_hxfer
+          call  uftofin
+          jp    ncats3
 
 ; Catalogue disc routine
 ; Syntax:
@@ -35,7 +87,7 @@ cat1:     call  rout32		; Look for a channel identifier
           cp    ','		; And then a comma or a semicolon
           jr    z,catcom
           cp    ';'
-          jp    nz,nonerr
+          jp    nz,error_nonsense
 catcom:   call  syntax		; More bit fiddling in syntax mode
           jr    nz,catco1
           res   7,(iy+1)
@@ -53,7 +105,7 @@ ncatcd:	  call  gdrive		; Get the drive number
           call  ckenqu		; Check for end of statement
           jr    z,ncatc1
           cp    ';'		; If not end of statement we must have a ';'
-          jp    nz,nonerr
+          jp    nz,error_nonsense
           call  rout32
           call  exptex		; And then we want a string
           call  ckend		; So this really is the end
@@ -83,17 +135,14 @@ msclop:   ld    de,(cursec)
           bit   2,(hl)  
           jr    nz,root4  
           call  messag  
-          db    'No files found'  
-          db    13,255  
+          defm  "No files found" & 13 & 255
 root4:    ld    a,13  
           call  print  		; Print a blank line
           call  free		; Calculate disc space free
           ld    b,255		; And then display it b = 255 indicates space
           call  prhund  
           call  messag  
-          db    'K free'  
-          db    13  
-          db    255  
+          defm  "K free" & 13 & 255         
           ret   
 
 
@@ -143,7 +192,7 @@ mslog:    ld    de,0		; MSDOS sector 0
           cp    0Ebh  
           jr    z,mscat2  
 mscat1:   call  errorn  
-          db    67 		;unrecognised disc format  
+          defb  67 		;unrecognised disc format  
 
 mscat2:   inc   hl  		; skip over second byte since M$ changed it
           inc   hl  		; go to third byte
@@ -255,11 +304,6 @@ disca5:   pop   hl  		; Get dir entry address back
           scf   		; Indicate that we matched a file
           ret   
 
-discou:   db    0  		;VARIABLE, saved file number within dir
-dispos:   dw    0  		;VARIABLE, saved addy within dir
-dirsol:   dw    0   		;VARIABLE, saved directory sector
-sdclus:   dw   0		;VARIABLE, subdir starting cluster number
-
 
 ; Set up directory variables for subdirectories
 ; Entry:	none
@@ -310,10 +354,13 @@ nxdse6:   ld    (curfat),de	; Save the current cluster number
           call  getsec  	; Convert to sector number
           ld    (cursec),de	; Save it
           scf   		; Indicate that we have another sector
-          ret   
+          ret
+
+
+
 
 ; Increment the current sector count
-: Entry:	none
+; Entry:	none			
 ; Exit:		c = set
 ;	       hl = next sector to read
 nxdse3:   ld    hl,(cursec)  
@@ -421,8 +468,7 @@ pricae:   push  hl  		; Save
           bit   4,(hl)  	; Test to see if directory
           jr    z,prica1	; No its not  
           call  messag  
-          db    '<DIR>'  
-          db    255  
+          defm  "<DIR>" & 255
           jr    prica2  	; Skip over file size priting
 prica1:   ld    a,32  		; Print a space
           call  print  
@@ -475,78 +521,10 @@ cfile2:   inc   de  		; We matched carry on looping
           djnz  cfile1  
           ret   		; Will return z if we get to the end
           
-filen:    ds    12,0  		;VARIABLE, contains file pattern
-          
-          
-;Calculate +3 track + sector
-;from MSDOS sector number
-;Entry: de=MSDOS sector
-;Exit    d=logical track
-;        e=sector number
-          
-calsec:   push  hl  		; Save hl + bc so we don't contaminate
-          push  bc  
-          ex    de,hl  		; Get DOS sector into hl
-          ld    d,255  		; Start off with an impossible track
-          ld    bc,9		; FIXME Sectors per track 
-calse1:   inc   d  		; Increment track
-          and   a  		; Clear carry so subtraction works
-          sbc   hl,bc  
-          jr    nc,calse1  	; Loop on round whilst hl > 0
-          add   hl,bc  		; We went -ve restore
-          ld    e,l  		; So l = 0 - 9, which is the sector within track
-          pop   bc  		; Restore those registers that we used
-          pop   hl  
-          ret   
-
-;
-; Print a number out
-; Entry:	hl = number
-;		 b = 0, print leading zeros
-;		 b = 255, print leading spaces
-;		 b = 254, don't print anything
-          
-prhund:   ld    de,100  
-          call  numcal  
-prtens:   ld    de,10  
-          call  numcal  
-prunit:   ld    de,1  
-          ld    b,0  	; Got to print something!
-numcal:   ld    a,255  
-numca1:   inc   a  
-          and   a  
-          sbc   hl,de  
-          jr    nc,numca1  
-          add   hl,de  
-          and   a  
-          jr    z,numca2  
-          ld    b,0  
-numca2:	add	A,48  
-          ld    c,a  
-          ld    a,b  
-          and   a  
-          jr    z,numca3  
-          inc   a  
-          ret   nz  
-          ld    c,32  
-numca3:   ld    a,c  
-          jp   print
           
           
 
           
-;MSDOS standard specification
           
-dispec:   db    0Ebh,034h,090h  
-          db    'SPDOS3.3'  
-          dw    512  ;Sector size  
-          db    2    ;Cluster size  
-          dw    1    ;Reserved sec  
-          db    2    ;No FAT tabs  
-          dw    70h  ;Dir slots  
-          dw    5A0h ;Secs/Disc  
-          db    0F9h ;Media descrip  
-          dw    3    ;Secs/FAT  
-          dw    9    ;Secs/Track  
-          dw    2    ;Tracks/cycle  
-          dw    0    ;Hidden secs  
+
+

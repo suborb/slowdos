@@ -2,13 +2,57 @@
 ;       Slowdos Source Code
 ;
 ;
-;       $Id: mscopy.asm,v 1.2 2003/06/15 12:20:47 dom Exp $
+;       $Id: mscopy.asm,v 1.3 2003/06/15 20:26:25 dom Exp $
 ;       $Author: dom $
-;       $Date: 2003/06/15 12:20:47 $
+;       $Date: 2003/06/15 20:26:25 $
 ;
 ;       Copy routines
 
 
+		MODULE	copy
+
+		INCLUDE	"slowdos.def"
+		INCLUDE	"syntax.def"
+		INCLUDE	"printing.def"
+
+	;; Errors
+		XREF	errorn
+		
+
+		XREF	settap
+		XREF	settapn
+
+		XREF	clufia
+		XREF	clfil0
+		XREF	clfilen
+		XREF	getst0
+
+		XREF	dodos
+
+		XREF	disca0
+	
+		XREF	wropen
+		XREF	wrbyte
+		XREF	wrclos
+
+		XREF	trdope
+		XREF	rdope1
+		XREF	rdbyte
+		
+		XREF	tapnam	;  msmove.asm
+
+		XREF	parse_p3name
+		XREF	filename_start
+		XREF	nsort
+
+		XDEF	copy
+
+
+
+catnam:		defs	16,32	; VARIABLE - used for cataloguing
+		defb	255
+copied:		defb	0	; VARIABLE - number of files copied
+	
 ; Copy command
 ;
 ; Syntax:
@@ -23,7 +67,7 @@ copy:     call  rout32  	; Check to see which mode we want
 ; Copying to MSDOS from +3
           call  exptex  	; We want a string
           cp    204  	    ; The next token should be TO
-          jp    nz,nonerr  	; Else its nonsense in BASIC
+          jp    nz,error_nonsense  	; Else its nonsense in BASIC
           call  getdrv	    ; Get the drive specifier
           call  syntax  	; If only syntax mode don't set some flags
           jr    z,copy1  
@@ -50,7 +94,7 @@ copycf:   call  ckenqu  	; Check for end
           call  getstr  	; Get the DOS filename
           jr    z,copy2  	; Valid destination filename
           call  errorn  
-          db    73 	        ;dest can't wild  
+          defb  73 	        ;dest can't wild  
 copy2:    call  ckend  	    ; Statement end/syntax mode
           ld    hl,flags2  
           res   2,(hl)  	; Indicate no files copied yet
@@ -66,7 +110,7 @@ copy2:    call  ckend  	    ; Statement end/syntax mode
           bit   3,(hl)  	; Source is wild, but filename specified
           jr    nz,cop2_8  
           call  errorn  
-          db    74 	        ;dest must be drv  
+          defb  74 	        ;dest must be drv  
 cop2_8:   set   1,(hl)  	; Indicate +3 filename is wild
 cop2_9:   ld    hl,namep3  	; Copy the whole filename to catalogue wildcard
           ld    de,catnam  
@@ -79,7 +123,7 @@ cop2_3:   ld    hl,copied  	; Reset copied file count
           call  setchan
           ld    a,13  	    ; Print a newline first of all
           call  print  
-copy3:    call  gp3drv  	;hl=flags2 on exit
+copy3:    call  parse_p3name  	;hl=flags2 on exit
           bit   1,(hl)  	; Check to see if source is wild
           jr    z,copy9  	; No its not
 ; Since we have a wild source, we have to catalogue the +3 disc
@@ -91,7 +135,7 @@ clp3csp:  ld    (de),a
           djnz  clp3csp  
           bit   2,(hl)  	; hl = flags2, have we copied before?
           jr    z,cop3_1  	; No, leave cat buffer uninitialised
-          ld    hl,(gp3dr4) ; Copy the user/drive stripped filename
+          ld    hl,(filename_start) ; Copy the user/drive stripped filename
           ld    de,sector  
           ld    c,8  
           ldir  
@@ -109,9 +153,9 @@ cop3_1:   ld    hl,catnam  	; Matching wildcard
           bit   2,(hl)  	; Check to see if we've copied any already
           jp    nz,copy6  
           call  errorn  
-          db    47 	        ;file not found  
+          defb  47 	        ;file not found  
 cop3_2:   ld    hl,sector+13  ; Copy first matching entry to full spec buffer
-          ld    de,(gp3dr4) ; Destination buffer
+          ld    de,(filename_start) ; Destination buffer
           ld    b,8  	    ; Copy root
           call  cop3_3  	; Removes flags which are in bit 7 of each char
           ld    a,'.'  	    ; Plonk a '.' in
@@ -131,7 +175,7 @@ copy9:
           ld    hl,flags2	; Check if destination is drive
           bit   3,(hl)
           jr    z,cop9_1	; It isn't - i.e. we had a filename
-          ld    hl,(gp3dr4)	; So copy +3 filename to DOS filename buffer
+          ld    hl,(filename_start)	; So copy +3 filename to DOS filename buffer
           ld    de,ufia+2
           ld    bc,12
           ldir
@@ -213,21 +257,19 @@ copy5:    push  hl	        ; BUG! This loop is wrong
           bit   1,(hl)  	; Was the source wild
           jp    nz,copy3  	; If so, loop around
 copy6:    call  messag  	; Print ip how many files were copied
-          db    13,13,32,255  
+          defb  13,13,32,255  
           ld    hl,(copied)  
           ld    h,0  
           ld    b,255  	    ; Space lead the number
           call  prhund  
           call  messag  
-          db    ' file'  
-          db    255  
+          defm  " file" & 255
           ld    a,(copied)  ; Nice touch so that the English is correct
           dec   a  
           ld    a,'s'  
           call  nz,print  
           call  messag  
-          db    ' copied.'  
-          db    13,255  
+          defm  " copied." & 13 & 255
           ret   
           
           
@@ -237,7 +279,7 @@ copy20:   call  rout32  	; Get next character
           call  cksemi  	; We want a semi colon, comma or quote
           call  exptex  	; No we want a string
           cp    204  	    ; The next token must be TOO
-          jp    nz,nonerr  	; Else its nonsense in BASIC
+          jp    nz,error_nonsense  	; Else its nonsense in BASIC
           call  rout32  	; Get the next character
           call  exptex  	; We want the destination filename
           call  ckend  	    ; And that must be the end of the statement
@@ -250,12 +292,12 @@ copy20:   call  rout32  	; Get next character
           call  clfil0	    ; Exits with b = 0, hl = namep3
           ld    c,16  	    ; And get the string
           call  getst0  
-          jp    nz,bfnerr	; Destination can't be wild
+          jp    nz,error_filename ; Destination can't be wild
 copy23:   ld    hl,flags2  	; ????
           ld    a,(hl)
           and   11110000b
           ld    (hl),a
-          call  gp3drv  	; Parse the +3 filename, hl = flags2
+          call  parse_p3name  	; Parse the +3 filename, hl = flags2
           bit   5,(hl)  	; Set if +3 filename is only a drive
           jr    z,copy24  
           set   3,(hl)  	; Indicates that we only have a drive dest?
@@ -269,7 +311,7 @@ copy24:   ld    a,1         ;ATP..the MSDOG name may be .TAP..
           bit   3,(hl)  	; Check to see if dest is drive
           jr    nz,copy25  	; It was, so no need to error
           call  errorn  
-          db    74 	        ;dest must be drv  
+          defb  74 	        ;dest must be drv  
 copy25:   ld    hl,copied  	; Initialise number of copied files
           ld    (hl),0  
           ld    a,2  	    ; Display in the upper screen
@@ -285,7 +327,7 @@ cop251:   ld    ix,ufia
           call  trdope	    ; Open the file within the .TAP file
           jr    nz,cop295	; Jump if there was a filename in the .TAP file
           ld    hl,tapnam	; There was no filename (headerless etc)
-          ld    de,(gp3dr4)	; Use the .TAP filename
+          ld    de,(filename_start)	; Use the .TAP filename
           ld    bc,8
           ldir
           ex    de,hl
@@ -294,7 +336,7 @@ cop251:   ld    ix,ufia
           ld    a,(copied)	; And a suffix of the number of files copied
           add   a,48
           ld    (hl),a
-          ld    de,(gp3dr4)	; Allows something to be displayed
+          ld    de,(filename_start)	; Allows something to be displayed
           jr    cop260
 
 cop295:   pop   hl   	    ;hl=flags2
@@ -310,14 +352,14 @@ cop213:   ld    hl,flags2
 cop253:   bit   2,(hl)  	; Had we previously copied some files?
           jp    nz,copy6  	; Yes we had
           call  errorn  
-          db    34 	        ;no file  
+          defb  34 	        ;no file  
 
 cop255:   call  rdope1  	; Open the file on the DOS disc, on entry, hl
 		                    ; points to the filename within the directory
           ld    hl,flags2  	; Check to see if destination is wild
           bit   3,(hl)  
           jr    z,cop266  	; It wasn't wild
-          ld    hl,(gp3dr4) ; Since it was wild, copy the filename
+          ld    hl,(filename_start) ; Since it was wild, copy the filename
           ld    de,pdname	; This include the '.'
           ex    de,hl
           ld    bc,12
@@ -385,51 +427,7 @@ nobas3:   ld    hl,flags2
           jp    copy6  	    ; Print summary of files copied
           
           
-;Get a +3 drive number...
-;Exit:    hl=flags2
-
-gp3drv:   ld    b,16  
-          ld    de,namep3  	; Start of +3 filename
-gp3dr0:   ld    (gp3dr4),de ; Say it starts there initially
-          ld    hl,flags2
-          res   0,(hl)	    ; BUG?? Seems to serve no purpose
-gp3dr1:   ld    a,(de)  
-          inc   de  
-          cp    ':'  	    ; If the character is a : then prev char is drive
-          jr    nz,gp3dr3  
-          ld    (gp3dr4),de ; Filename starts after the :
-          dec   de  	    ; Pick up the drive letter
-          dec   de  
-          ld    a,(de)
-          ld    hl,flags2
-          set   0,(hl)	    ; BUG?? serves no purpose
-          bit   7,(hl)	    ; If set then check drive parameter
-          call  z,ckdrv  
-          ld    (de),a  	; And save the uppercased drive letter
-          inc   de  	    ; Get the first letter of the filename
-          inc   de  
-          res   5,(hl)  	; Indicate +3 name is filename
-          ld    a,(de)  	; If the first character after drive is space
-          cp    32  	    ; then we just have a drive
-          ret   nz  
-          set   5,(hl)  	; Indicate that we only have a drive
-          ret   
-gp3dr3:   djnz  gp3dr1  	; Keep looping
-          ret   
-gp3dr4:   dw    0  	        ;VARIABLE - start of +3 filename without drives
-          
-; Check to see whether a +3 drive is valid
-; Entry:	a = drive letter
-; Exit:	z = drive valid 
-;	a = upper cased drive descriptor
-;	Displays error if invalid
-ckdrv:    and   223  	    ; Convert to uppercase
-          cp    'A'  
-          ret   z  
-          cp    'M'  
-          ret   z  
-          call  errorn  
-          db    78 	        ;invalid drv  
+ 
           
 ; Print the DOS filename
 ; Entry:	de = filename
@@ -438,8 +436,7 @@ prdfin:   push  de  	    ; Save it
           ld    a,255  	    ; Hack it so we don't wait for a scroll? prompt
           ld    (23692),a  
           call  messag      ; Print a silly DOS drive name
-          db    'P*:'  
-          db    255  
+          defm  "P*:" & 255
           pop   de  
           ld    bc,12	    ; Filename length is 12 characters
           ld    hl,flags2	; Unless we're within a .TAP file
@@ -460,45 +457,3 @@ prfiln:   ld    a,255  	    ; Hack it so we don't wait for scroll? prompt
           jp    string  
 
 
-; Convert a filename within a .TAP file to +3 format
-; Entry:	none
-; Exit:	none
-nsort:    ld    hl,intafil+10  
-          ld    de,(gp3dr4)	; Destination
-          push  de	        ; Save dest
-          ld    c,10  	    ; Length of .TAP filename
-          ld    b,8  	    ; Length of this segment
-          call  nsort1  	; Returns hl = current pos in .TAP name
-          ex    de,hl  	    ; Get it into de
-          pop   hl	        ; Get original dest back
-          push  bc  	    ; Save amount of .TAP chars left
-          ld    bc,8  	    ; Step to '.' place
-          add   hl,bc  
-          pop   bc  
-          ld    (hl),'.'  	; Put the '.' there
-          inc   hl  	    ; Step to extension place
-          ex    de,hl  	    ; Now hl = remainder of .TAP name, de = ext place
-          ld    b,3  	    ; 3 characters in extension
-          
-nsort1:   ld    a,(hl)  	; Some bounds checking
-          cp    127  	    ; If > 127 then use a # instead
-          jr    nc,nsort7  
-          cp    32  	    ; If < 32 then use a # as well
-          jr    nc,nsort3  
-          dec   c  	        ; BUG! - should check later
-          ret   z  	
-nsort7:   ld    a,'#'  
-nsort3:   inc   hl  	    ; Increment .TAP pointer
-          cp    '.'  	    ; If .TAP has a '.'
-          jr    z,nsort8  	; Do some checking
-          ld    (de),a  	; Otherwise store it
-          inc   de  	    ; Increment +3 place
-nsort9:   dec   c  	        ; Dec .TAP counter
-          ret   z  	        ; And return if zero
-          djnz  nsort1  	; Loop over characters left in +3 filepart
-          ret   
-
-nsort8:   ld    a,c  	    ; If we hit a '.' and we've not got two chars
-          cp    2  	        ; left then return
-          ret   nz  
-          jr    nsort9

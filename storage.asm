@@ -1,85 +1,81 @@
-;Storage variables for Slowdos 
-;Shoved at end to avoid some nasty
-;Memory conflicts (if any...)
+;
+;       Slowdos Source Code
+;
+;
+;       $Id: storage.asm,v 1.2 2003/06/15 20:26:27 dom Exp $
+;       $Author: dom $
+;       $Date: 2003/06/15 20:26:27 $
+;
+;	Memory storage that is used 
+	
+
+		MODULE	storage
+
+		XDEF	curdrv
+		XDEF	ufia
+		XDEF	chanel
+		XDEF	temphd
+		XDEF	rdflen
+		XDEF	wrflen
+		XDEF	page
+		XDEF	namep3
+		XDEF	pdname
+		XDEF	curfat
+		XDEF	flags
+		XDEF	flags2
+		XDEF	flags3
+		XDEF	rotsta
+		XDEF	rotlen
+		XDEF	frepos
+		XDEF	dirsec
+		XDEF	dirsol
+		XDEF	sdclus
+		XDEF	filen
+		XDEF	intafil
+
 
 
 ;From msload
 
 curdrv:
-ufia:	db	0	;drive
-chanel:	db	0	;stream
-	ds	12,32	;name - including '.'
-	db	0	;dir flags
-	db	0	;filetype
-	dw	0	;file length
-	dw	0	;load addy
-	dw	0	;offset
+ufia:		defb	0	;drive
+chanel:		defb	0	;stream
+		defs	12,32	;name - including '.'
+		defb	0	;dir flags
+		defb	0	;filetype
+		defw	0	;file length
+		defw	0	;load addy
+		defw	0	;offset
 
-;Filetype 4=48k snapshot
-;Filetype 5=headerless long code
-
-;Variables for loading..
-
-rdclco:	db	0	;counter
-rdclse:	dw	0	;sector
-rdclus:	dw	0	;cluster
-rdflen:	dw	0,0	;file length
-rdfsec:	dw	0	;used for copy MS - MS
-sectgo:	dw	0
-secpos:	dw	0
-temphd:	ds	7,0
-
-;Variables for saving
-
-wrclco:	db	0
-wrtogo:	dw	0
-wrsepo:	dw	0
-wrclus:	dw	0
-wrclse:	dw	0
-wrdsec:	dw	0
-wrdpos:	dw	0
-
-wrflen:	dw	0,0
-;dirmse:	ds	32,0
+	
+temphd:		defs	7,0
+rdflen:		defw	0,0	; VARIABLE - reading file length
 
 
-;From mscopy.asm
-;At 65472 have 64 bytes to play with....
+wrflen:		defw	0,0	; VARIABLE - writing file length
 
-dirmse:	equ	65472	;32
-diskif:	equ	dirmse+32	;30
+page:     defb    0		; VARIABLE
 
 
 ;Plus3 filename and header
-namep3:	ds	16,32
-	db	255
-pdname:	ds	12,0
-catnam:	ds	16,32
-	db	255
-copied:	db	0
-
-;Second ufia - not used!!!
-;ufia2:	ds	22,0
+namep3:		defs	16,32	; VARIABLE - +3 filename
+		defb	255
+pdname:		defs	12,0
 
 
-;From mscat5.asm
 
-;MSDOS catalogue data
+curfat:		defw	0	; VARIABLE - current/last cluster of catalogue
+flags:		defb	0	; VARIABLE
+flags2:		defb	0	; VARIABLE
+flags3:		defb	0	; VARIABLE
+rotsta:		defw	0	; VARIABLE - start of root directory
+rotlen:		defw	0	; VARIABLE - length of root directory
+frepos:		defb	0	; VARIABLE - free position
 
-;volnam:	ds	11,32
-curfat:	dw	0
-cursec:	dw	0
-catdon:	db	0
-clusno:	db	0
-flags:	db	0
-flags2:	db	0
-flags3:	db	0
-rotsta:	dw	0
-rotlen:	dw	0
-fileno:	db	0
-frepos:	db	0
+dirsec:		defw    0	 ; VARIABLE - sector containing first free dir entry
+dirsol:		defw    0        ; VARIABLE, saved directory sector
+sdclus:		defw    0        ; VARIABLE, subdir starting cluster number
+filen:		defs    12,0     ; VARIABLE, contains file pattern
+intafil:	defs    20,32    ; VARIABLE - store for .TAP filenames
 
 
-;MSDOS disc parameter table
-
-;diskif:	ds	30,0
