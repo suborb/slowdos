@@ -1,0 +1,31 @@
+Flags used by Slowdos
+
+flags
+bit 0 - 
+bit 1 - parsed filename was wild
+bit 2 - we've already erased some files / write disc name format
+bit 3 - 
+bit 4 - continue reading directory
+bit 5 - no header required when writing / initialise disc only format
+bit 6 - 
+bit 7 - in ROM3 call
+
+flags2
+bit 0 - 
+bit 1 - +3 filename is wild
+bit 2 - files have been copied
+bit 3 - destination is drive
+bit 4 - 
+bit 5 - 
+bit 6 - reading from .TAP file
+bit 7 - if set then check +3 drive validity?
+
+flags3
+bit 0 - in .TAP mode
+bit 1 - writing to .TAP file
+bit 2 - 
+bit 3 - in sub directory
+bit 4 - 
+bit 5 - in hook code
+bit 6 - 
+bit 7 - 
