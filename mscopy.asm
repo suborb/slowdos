@@ -2,9 +2,9 @@
 ;       Slowdos Source Code
 ;
 ;
-;       $Id: mscopy.asm,v 1.3 2003/06/15 20:26:25 dom Exp $
+;       $Id: mscopy.asm,v 1.4 2003/06/15 21:02:12 dom Exp $
 ;       $Author: dom $
-;       $Date: 2003/06/15 20:26:25 $
+;       $Date: 2003/06/15 21:02:12 $
 ;
 ;       Copy routines
 
@@ -233,23 +233,29 @@ nobas2:
           pop   de	        ; Get file length back
           pop   hl
           inc   e	
-copy5:    push  hl	        ; BUG! This loop is wrong
+copy5:    ld    a,h
+	  or    l
+	  or    e
+	  jr    z,copy5_end	; copied all we can
+copy55:	
+	  push  hl	        
           push  de  
           ld    b,0  
           ld    iy,280  	; DOS BYTE READ
           call  dodos  
-          ld    a,c  	    ; Write the byte to the MSDOS disc
+          ld    a,c  	        ; Write the byte to the MSDOS disc
           call  wrbyte  
           pop   de
           pop   hl
-          dec   hl	        ; As I said, this loop is  wrong and will cause
-          ld    a,h	        ; problems if file has length that is a multiple
-          or    l	        ; of 65536
-          jr    nz,copy5
-          dec   e
-          jr    nz,copy5
+	  dec   hl
+	  ld    a,h
+	  or    l
+	  jr    nz,copy5
+	  dec   e
+	  jr    copy55
+copy5_end:	
           call  wrclos  	; Close the DOS file
-          ld    b,0  	    ; Close the +3 file
+          ld    b,0  	        ; Close the +3 file
           ld    iy,265  	; DOS CLOSE
           call  dodos  
           ld    hl,flags2  
@@ -260,7 +266,7 @@ copy6:    call  messag  	; Print ip how many files were copied
           defb  13,13,32,255  
           ld    hl,(copied)  
           ld    h,0  
-          ld    b,255  	    ; Space lead the number
+          ld    b,255  	        ; Space lead the number
           call  prhund  
           call  messag  
           defm  " file" & 255
@@ -282,11 +288,10 @@ copy20:   call  rout32  	; Get next character
           jp    nz,error_nonsense  	; Else its nonsense in BASIC
           call  rout32  	; Get the next character
           call  exptex  	; We want the destination filename
-          call  ckend  	    ; And that must be the end of the statement
-          ld    hl,flags	; BUG! Should be flags2 not flags
-          set   7,(hl)
-          dec   hl   	    ; 
-          res   5,(hl)	    ; BUG? Should be flags2 - dest drive
+          call  ckend  	        ; And that must be the end of the statement
+          ld    hl,flags2	;
+          set   7,(hl)		; Set check +3 drive indicator
+          res   5,(hl)		; Reset dest drive indicator
           ld    b,16  	    ; Clear the destination filename
           ld    hl,namep3  
           call  clfil0	    ; Exits with b = 0, hl = namep3
@@ -378,16 +383,20 @@ cop260:   call  prdfin
 
 cop267:   ld    hl,(rdflen) ; This is initialised by rdope1 
           ld    de,(rdflen+2)
-          inc   e	        ; BUG
           ld    a,(flags2)	; Check to see if we're in a .TAP file
           bit   6,a
           jr    z,copy27
           ld    hl,(temphd+1)	; If we are, pick up the length of file within TAP
-          ld    e,1
-copy27:   push  hl	        ; BUG, once again this loop is broken
+          ld    e,0
+copy27:   ld    a,h
+	  or    l
+	  or    e
+	  jr    z,copy27_end
+copy275:		
+	  push  hl	       
           push  de  
           call  rdbyte  	; Read the byte from the MSDOS disc
-          ld    b,0  	    ; And write it to the +3 file
+          ld    b,0  	        ; And write it to the +3 file
           ld    c,a  
           ld    iy,283  	; DOS WRITE BYTE
           call  dodos  
@@ -398,7 +407,8 @@ copy27:   push  hl	        ; BUG, once again this loop is broken
           or    l
           jr    nz,copy27
           dec   e
-          jr    nz,copy27
+	  jr    copy275
+copy27_end:	
           ld    hl,flags2	; If we're within a .TAP file, skip the checksum
           bit   6,(hl)
           call  nz,rdbyte 

@@ -2,9 +2,9 @@
 ;	Slowdos Source Code
 ;
 ;
-;	$Id: filename.asm,v 1.1 2003/06/15 20:26:25 dom Exp $
+;	$Id: filename.asm,v 1.2 2003/06/15 21:02:12 dom Exp $
 ;	$Author: dom $
-;	$Date: 2003/06/15 20:26:25 $
+;	$Date: 2003/06/15 21:02:12 $
 ;
 ;	Manipulation of filenames
 
@@ -319,9 +319,7 @@ nsort1:   ld    a,(hl)  	; Some bounds checking
           cp    127  	    ; If > 127 then use a # instead
           jr    nc,nsort7  
           cp    32  	    ; If < 32 then use a # as well
-          jr    nc,nsort3  
-          dec   c  	        ; BUG! - should check later
-          ret   z  	
+          jr    nc,nsort3  	
 nsort7:   ld    a,'#'  
 nsort3:   inc   hl  	    ; Increment .TAP pointer
           cp    '.'  	    ; If .TAP has a '.'
@@ -347,7 +345,7 @@ parse_p3name:
 parse_p3name1:   
 	  ld    (filename_start),de ; Say it starts there initially
           ld    hl,flags2
-          res   0,(hl)	    ; BUG?? Seems to serve no purpose
+	  res   5,(hl)		; Indicate that its only a filename
 gp3dr1:   ld    a,(de)  
           inc   de  
           cp    ':'  	    ; If the character is a : then prev char is drive
@@ -356,9 +354,7 @@ gp3dr1:   ld    a,(de)
           dec   de  	    ; Pick up the drive letter
           dec   de  
           ld    a,(de)
-          ld    hl,flags2
-          set   0,(hl)	    ; BUG?? serves no purpose
-          bit   7,(hl)	    ; If set then check drive parameter
+          bit   7,(hl)	    ; If set then check drive parameter (hl=flags2)
           call  z,ckdrv  
           ld    (de),a  	; And save the uppercased drive letter
           inc   de  	    ; Get the first letter of the filename
