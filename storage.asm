@@ -2,9 +2,9 @@
 ;       Slowdos Source Code
 ;
 ;
-;       $Id: storage.asm,v 1.2 2003/06/15 20:26:27 dom Exp $
+;       $Id: storage.asm,v 1.3 2003/06/17 19:08:03 dom Exp $
 ;       $Author: dom $
-;       $Date: 2003/06/15 20:26:27 $
+;       $Date: 2003/06/17 19:08:03 $
 ;
 ;	Memory storage that is used 
 	
@@ -26,6 +26,7 @@
 		XDEF	flags3
 		XDEF	rotsta
 		XDEF	rotlen
+		XDEF	fileno
 		XDEF	frepos
 		XDEF	dirsec
 		XDEF	dirsol
@@ -70,6 +71,7 @@ flags2:		defb	0	; VARIABLE
 flags3:		defb	0	; VARIABLE
 rotsta:		defw	0	; VARIABLE - start of root directory
 rotlen:		defw	0	; VARIABLE - length of root directory
+fileno:		defb	0	; VARIABLE - Position within directory
 frepos:		defb	0	; VARIABLE - free position
 
 dirsec:		defw    0	 ; VARIABLE - sector containing first free dir entry

@@ -2,9 +2,9 @@
 ;       Slowdos Source Code
 ;
 ;
-;       $Id: mscat.asm,v 1.2 2003/06/17 17:39:10 dom Exp $
+;       $Id: mscat.asm,v 1.3 2003/06/17 19:08:03 dom Exp $
 ;       $Author: dom $
-;       $Date: 2003/06/17 17:39:10 $
+;       $Date: 2003/06/17 19:08:03 $
 ;
 ;	Disc cataloging routines
     
@@ -47,11 +47,10 @@
 		XDEF	cfile1
 
        
+catdon:		defb	0	; VARIABLE - number of root dir slots catalogued
 clusno:		defb	0	; VARIABLE - catalogue cluster count
-catdon:		defb	0	; VARIABLE - number of root dir slots catalogued   
 
 cursec:		defw	0	; VARIABLE - current sector being catalogued
-fileno:		defb	0	; VARIABLE - Position within directory
 discou:		defb    0       ; VARIABLE, saved file number within dir
 dispos:		defw    0        ; VARIABLE, saved addy within dir
 
@@ -269,8 +268,8 @@ disca0:   ld    hl,flags2  	; If reset then start from the start
 discan:   ld    hl,flags2	; Indicate start from start
           res   4,(hl)
           ld    hl,0
-          ld    (fileno),hl
-          ld    (catdon),hl
+          ld    (fileno),hl	; Initialise fileno + frepos
+          ld    (catdon),hl	; Initialiase catdon + clusno
           call  gsubst		; Setup for sub directories
 disca1:   ld    hl,flags2	; If we're continuing, don't log the disc in
           bit   4,(hl)
