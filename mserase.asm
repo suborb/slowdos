@@ -2,9 +2,9 @@
 ;       Slowdos Source Code
 ;
 ;
-;       $Id: mserase.asm,v 1.1 2003/06/14 23:08:19 dom Exp $
+;       $Id: mserase.asm,v 1.2 2003/06/15 12:20:48 dom Exp $
 ;       $Author: dom $
-;       $Date: 2003/06/14 23:08:19 $
+;       $Date: 2003/06/15 12:20:48 $
 ;
 ;	Erase command
 
@@ -31,14 +31,13 @@ erase:
           call  cksemi  	; We expect a semi colon, comma or filename
           call  exptex  	; Get a strinbg
           call  ckend  		; End of statement
-          xor   a		; ???
-          call  settap		; ???
+          call  settapn		; Clear .TAP modes
           ld    hl,fildes	; Clear fildes
-          call  clfiln  
+          call  clfiln  	; Exits with hl=fildes
           call  getstr  	; Get the second string
           jr    z,eras15  
 eras14:   call  errorn  
-          db    43 ;bad filename  
+          db    43 		;bad filename  
 eras15:   call  clfilen		; Clear ufia+2, hl = ufia+2
           call  getstr  	; Get the original filename
           jr    nz,eras14  
@@ -86,8 +85,7 @@ erase4:   pop   de  		; Not found, so write out the directory sector
 
 ; Delete a file from disc
 erase6:   call  ckend		; End of statement
-
-          call  settapn  	l ??
+          call  settapn  	; Clear .TAP modes
           call  clfilen  	; Clear filen,  hl = filen
           call  getstr  	; Get the filename
 en_ers:   ld    hl,flags  
@@ -96,9 +94,9 @@ en_ers:   ld    hl,flags
           res   4,(hl)  	; Indicate start from beginning of directory
 eras64:   call  disca0  	; Scan the disc 
           jr    c,erase8  	; Filename found
-          ld    hl,flags  	; ??
-          bit   1,(hl)  
-          jr    z,erase7  
+          ld    hl,flags  	
+          bit   1,(hl)  	; Check if wild filename was supplied
+          jr    z,erase7  	; No it wasn't
           bit   2,(hl)  	; Check to see if we already found something
           ret   nz  		; We did, so exit normally
 erase7:   call  errorn  
@@ -110,33 +108,32 @@ erase8:   call  locate		; Offset within directory
           push  de
           ld    bc,512  
           ldir  
-          pop  de		; de = wrisec
-          pop  ix		; offset within directory
-          add  ix,de
-          bit  0,(ix+11) 	; check for read only file
-          jr   z,eras81
-          call errorn
-          db   52   		;file read only
-eras81:   bit  4,(ix+11) 	; can't delete directories
-          jp   nz,bfiltyp
-eras82:   bit  3,(ix+11) 	; can't delete volume names
-          jp   nz,bfiltyp
-          ld   (ix+0),229   	; Blank out first character of name
+          pop   de		; de = wrisec
+          pop   ix		; offset within directory
+          add   ix,de
+          bit   0,(ix+11) 	; check for read only file
+          jr    z,eras81
+          call  errorn
+          db    52   		;file read only
+eras81:   bit   4,(ix+11) 	; can't delete directories
+          jp    nz,bfiltyp
+eras82:   bit   3,(ix+11) 	; can't delete volume names
+          jp    nz,bfiltyp
+          ld    (ix+0),229   	; Blank out first character of name
 ; Chase the FAT trail and zero down clusters occupied by this file
-          ld   e,(ix+26)
-          ld   d,(ix+27)
-eras84:   push de
-          call rdnxft		; de = next cluster
-          pop  hl		; hl = current cluster
-          push af		; Save whether valid next cluster or not
-          ex   de,hl
-          push hl		; Save next cluster
-          ld   bc,0		; Zero out that link
-          call locimp
-          pop  de		; Get next cluster back
-          pop  af		; nc means next cluster is good
-          jr   nc,eras84
-
+          ld    e,(ix+26)
+          ld    d,(ix+27)
+eras84:   push  de
+          call  rdnxft		; de = next cluster
+          pop   hl		; hl = current cluster
+          push  af		; Save whether valid next cluster or not
+          ex    de,hl
+          push  hl		; Save next cluster
+          ld    bc,0		; Zero out that link
+          call  locimp
+          pop   de		; Get next cluster back
+          pop   af		; nc means next cluster is good
+          jr    nc,eras84
           ld    hl,swos1	; Write out one copy of the FAT, save the other
           call  wrfata		; so it can be used to restore files
           ld    de,(dirsol)	; Write out the directory sector

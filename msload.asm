@@ -2,9 +2,9 @@
 ;       Slowdos Source Code
 ;
 ;
-;       $Id: msload.asm,v 1.1 2003/06/14 23:08:19 dom Exp $
+;       $Id: msload.asm,v 1.2 2003/06/15 12:20:48 dom Exp $
 ;       $Author: dom $
-;       $Date: 2003/06/14 23:08:19 $
+;       $Date: 2003/06/15 12:20:48 $
 ;
 ;	Routines concerned with loading files from disc
 
@@ -31,30 +31,30 @@ rdopen:   ld    hl,flags2
           call  discan  	; Scan for the file in the directory
           jr    c,rdope1  	; It did exit
 filnot:   call  errorn  
-          db    34		;file not exist  
+          db    34		    ;file not exist  
 rdope1:   ld    de,pdname	; Copy the filename for use by copy
           ld    bc,8
           ldir
           ld    a,'.'
           ld    (de),a
           inc   de
-          ld    c,3		; We know b = 0
+          ld    c,3		    ; We know b = 0
           ldir
           bit   4,(hl)  	; Check the directory flags
           jr    z,rdope2  	; It wasn't a directory
 bfiltyp:  call  errorn  	
-          db    29 ;wrong file type  
+          db    29          ;wrong file type  
 rdope2:   ld    de,15 		; Get the started cluster 
           add   hl,de  
           ld    e,(hl)  
           inc   hl  
           ld    d,(hl)  
           inc   hl
-          ld    (rdclus),de  	; And save it
+          ld    (rdclus),de ; And save it
           push  hl  		; hl points to file length, save it
           call  getsec  	; Convert cluster into sector
           pop   hl  		; Get pointer to file length back
-          ld    (rdclse),de  	; Save the starting sector
+          ld    (rdclse),de ; Save the starting sector
           ld    (rdfsec),de	; FIXME: unused
           ld    c,(hl)  	; Pick up the file length (lsb)
           inc   hl  
@@ -63,11 +63,11 @@ rdope2:   ld    de,15 		; Get the started cluster
           ld    e,(hl)  
           inc   hl  
           ld    d,(hl)  	; msb
-          ld    (rdflen),bc  	; Save file length
+          ld    (rdflen),bc ; Save file length
           ld    (rdflen+2),de  
           ld    a,(diskif+13)  	; Number of sectors in a cluster
           inc   a  
-          ld    (rdclco),a  	; And save it
+          ld    (rdclco),a  ; And save it
           call  rnfsec  	; Read in first sector
           ld    hl,sector  	; Check file header
           ld    de,signat  
@@ -82,7 +82,7 @@ rdope3:   ld    a,(de)
           add   hl,bc  
           ld    de,temphd  
           inc  bc   		; bc was 6, need it to be 7!!!
-          ldir  		; Copy the header to temporary space
+          ldir  		    ; Copy the header to temporary space
           ld    hl,384  	; Set up sector variables
           ld    (sectgo),hl  
           ld    hl,sector+128  
@@ -95,7 +95,7 @@ rdope5:   ld    hl,(rdflen+2)
           jr    z,rdope6 	; File was < 65536 bytes 
 rdope7:   ld    a,5   		; Indicate long file
 rdope8:   ld    (temphd),a  
-          ld    hl,(rdflen)  	; Set up the length and other header stuff
+          ld    hl,(rdflen) ; Set up the length and other header stuff
           ld    de,(rdflen+2)  
 rdopeb:   ld    (temphd+1),hl  
           ld    (temphd+3),de  
@@ -108,15 +108,15 @@ rdope6:   ld    hl,(rdflen)	; Check for snapshot length
           sbc   hl,bc  
           ld    a,h  
           or    l
-          ld    a,3          	; Just a normal code file 
-          jr    nz,rdope8    	; Setup headers 
-          ld    de,filen+9  	; Compare extension
+          ld    a,3         ; Just a normal code file 
+          jr    nz,rdope8   ; Setup headers 
+          ld    de,filen+9  ; Compare extension
           ld    hl,texsna  
           call  ckext		; Exits with 3 =code, 4 =snap files
           jr    rdope8
 
 ;Check an extension matches...
-;Entry:   de=filename extensino
+;Entry:   de=filename extension
 ;         hl=should match with
 ;Exit:     z=match/nz=no match
 ;         a=4(snap)/3(code) - only for .SNA matching
@@ -125,25 +125,25 @@ ckext:    ld    b,3
 ckext1:   ld    a,(de)
           and   223
           cp    (hl)
-          ld    a,3  ;normal code
+          ld    a,3         ;normal code
           ret   nz
           inc   hl
           inc   de
           djnz  ckext1
-          ld    a,4  ;snapshot
+          ld    a,4         ;snapshot
           ret
 
 
        
 ; Open a file within a .TAP file
-trdope:   push  ix	; Save ufia
-          call  rdfat	; Read the FAT table in
-          pop   ix	; Restore ufia
-trdoper:  call  rdbyte	; Read in length of .TAP file
+trdope:   push  ix	        ; Save ufia
+          call  rdfat	    ; Read the FAT table in
+          pop   ix	        ; Restore ufia
+trdoper:  call  rdbyte	    ; Read in length of .TAP file
           ld    e,a
           call  rdbyte
           ld    d,a
-          ld    hl,19	; Compare with length of header
+          ld    hl,19	    ; Compare with length of header
           and   a
           sbc   hl,de
           ld    a,h
@@ -153,29 +153,29 @@ trdoper:  call  rdbyte	; Read in length of .TAP file
           cp    '*'
           jp    nz,trdope9	; We're not, so skip this block
           call  rdbyte   	; Skip the .TAP file type
-          dec   de		; Decrement file length
-          ld    a,3		; Construct a fake header
+          dec   de		    ; Decrement file length
+          ld    a,3		    ; Construct a fake header
           ld    hl,0
           ld    (temphd),a
           ld    (temphd+1),de
           ld    (temphd+3),hl
           ld    (temphd+5),hl
           ld    a,l
-          and   a    ;nc,z
+          and   a           ;nc,z
           ret
 trdope2:  call  rdbyte		; Read 'header' .TAP filetype
-          dec   de		; Reduce file length
-          and   a		; Filetype must be zero
+          dec   de		    ; Reduce file length
+          and   a		    ; Filetype must be zero
           jr    nz,trdope9	; If not, we'll skip the file
           call  rdbyte		; Read ZX filetype
-          dec   de		; Decrement file length
+          dec   de		    ; Decrement file length
           ld    (temphd),a	; Save filetype
           ld    hl,intafil	; Clear the temporary space
           ld    b,20
           call  clfil0		; Exits with hl = intafil
-          push  de		; Save file length
+          push  de		    ; Save file length
           call  pdconv    	; Convert +3 filename in ufia to .TAP in intafil
-          pop   de		; Get file length back
+          pop   de		    ; Get file length back
           ld    b,10		; Read in the filename in the .TAP file
           ld    hl,intafil+10
 trdope0:  call  rdbyte
@@ -183,43 +183,43 @@ trdope0:  call  rdbyte
           ld    (hl),a
           inc   hl
           djnz  trdope0
-          ld    b,6		; Now read in the header info from the .TAP file
+          ld    b,6		    ; Now read in the header info from the .TAP file
           ld    hl,temphd+1
 trdope1:  call  rdbyte
           dec   de
           ld    (hl),a
           inc   hl
           djnz  trdope1
-          push  de		; Save file length
+          push  de		    ; Save file length
           ld    hl,intafil+10	; Compare filenames
           ld    de,intafil
           ld    b,10
           call  cfile1
-          pop   de		; Restore file length
+          pop   de		    ; Restore file length
           jr    nz,trdope9	; If they don't match, skip over this block
           call  rdbyte    	; Discard the checksum of header
           call  rdbyte    	; Discard LSB of next block length
           call  rdbyte    	; Discard MSB of next block length
           call  rdbyte    	; Discard datatype of next block
-          ld    a,e		; e != 0
-          and   a    ;nc,nz
+          ld    a,e		    ; e != 0
+          and   a           ;nc,nz
           ret
 
 ;Scan to end of file...
-trdope9:  ld    a,d		; check length
+trdope9:  ld    a,d		    ; check length
           or    e
           jp    z,trdoper
           call  rdbyte		; Read byte
-          dec   de		; Decrement file length
+          dec   de		    ; Decrement file length
           jr    trdope9		; And loop
 
-intafil:  ds   20,0		; VARIABLE - store for .TAP filenames
+intafil:  ds   20,0		    ; VARIABLE - store for .TAP filenames
 
 ;Adjust name MSDOS > tape
           
-pdconv:   push  ix		; Get ufia into hl
+pdconv:   push  ix		    ; Get ufia into hl
           pop   hl
-          inc   hl		; Skip to ufia+2
+          inc   hl		    ; Skip to ufia+2
           inc   hl
           ld    de,intafil  
 adjust:   ld    bc,2573  	; b = 10, c = 13
@@ -260,25 +260,25 @@ adout2:   inc   hl
 rnfsec:   ld    hl,rdclco  	; Decrement sectors in cluster count
           dec   (hl)  
           call  z,rnfse2  	; Read all sectors, get next cluster
-rnfse1:   ld    de,(rdclse)  	; Read in the next sector in a cluster
+rnfse1:   ld    de,(rdclse) ; Read in the next sector in a cluster
           push  de  
           call  sros  
           pop   de  
           inc   de  
-          ld    (rdclse),de  	; Save next sector position
+          ld    (rdclse),de ; Save next sector position
           ld    hl,512  	; Set up reading variables
           ld    (sectgo),hl  
           ld    hl,sector  
           ld    (secpos),hl  
           ret   
-rnfse2:   ld    de,(rdclus) 	; Pick up current cluster
+rnfse2:   ld    de,(rdclus) ; Pick up current cluster
           call  rdnxft  	; Get next cluster
-          ld    (rdclus),de  	; Save it
+          ld    (rdclus),de ; Save it
           jr    nc,rnfse3  	; Next cluster is valid
 rnfse4:   call  errorn  
-          db    49 		;end of file  
+          db    49 		    ;end of file  
 rnfse3:   call  getsec  	; Convert to DOS sector
-          ld    (rdclse),de  	; Save it
+          ld    (rdclse),de ; Save it
           ld    a,(diskif+13)  	; Number of sectors per cluster
           ld    (rdclco),a  	; Save it
           ret
@@ -300,7 +300,7 @@ rdblo1:   ld    a,b  		; Check file length
           jr    rdblo1  	; Loop round once more
 rdblo0:   ld    hl,flags2	; Check for reading .TAP file
           bit   6,(hl)
-          ret   z		; Not reading .TAP file
+          ret   z		    ; Not reading .TAP file
           jp    rdbyte		; Swallow the parity byte
           
 ; Read/write a byte from any page in memory
@@ -342,7 +342,7 @@ rdini1:   push  de
 rdbyte:   push  de  
           push  bc  
           push  hl  
-          ld    hl,(sectgo)  	; Check amount left to read in current sector
+          ld    hl,(sectgo) ; Check amount left to read in current sector
           ld    a,h  
           or    l  
           call  z,rnfsec  	; Need to pick up the next sector
@@ -367,9 +367,9 @@ getsec:   dec   de  		; First valid cluster is 2
           ld    hl,(diskif+13) 	; Sectors per cluster
           ld    h,0  
           call  rhlxde  	; Bad, bad, should call through rom3
-          ld    de,(rotsta)  	; Start of root directory
+          ld    de,(rotsta) ; Start of root directory
           add   hl,de  
-          ld    de,(rotlen)  	; Length of root directory
+          ld    de,(rotlen) ; Length of root directory
           add   hl,de  
           ex    de,hl  
           ret   
@@ -402,7 +402,7 @@ rdnxf1:   add   hl,bc
 rdnxf2:   srl   d  
           rr    e  
           djnz  rdnxf2  
-rdnxf3:   ld    hl,0F00h  	; Compare to endmarker
+rdnxf3:   ld    hl,0F00h ; Compare to endmarker
           and   a  
           sbc   hl,de  
           ret
