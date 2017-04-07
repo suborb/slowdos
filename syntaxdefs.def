@@ -1,0 +1,31 @@
+;
+;       Slowdos Source Code
+;
+;
+;       $Id: syntax.def,v 1.1 2003/06/15 20:26:27 dom Exp $
+;       $Author: dom $
+;       $Date: 2003/06/15 20:26:27 $
+;
+;       Defines for syntax checking
+
+
+		EXTERN	getdrv	; Get the drive
+		EXTERN	getdrv1	; Get the drive
+		EXTERN	getdrv2	; Get the drive
+		EXTERN	gdrive
+
+		EXTERN	cksemi	; Check for semicolon, comma or double quote
+		EXTERN	exptex	; We want a string
+		EXTERN	ckenqu	; Enquire whether end of statement
+		EXTERN	ckend	; Check for end of statement/syntax mode
+		EXTERN	getstr	; Get a string from the stack
+		EXTERN	rout32	; 
+		EXTERN	rout24	;
+		EXTERN	rom3	; Call ROM3 routine
+		EXTERN	e32_1n	; Advance, and get a number
+		EXTERN	getnum	; Get number
+		EXTERN	syntax
+		EXTERN	readbyte ; Pick up a byte from the BASIC memory map
+
+		EXTERN	error_nonsense
+		EXTERN	error_filename

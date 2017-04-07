@@ -11,35 +11,35 @@
 
 		MODULE	loadsave
 		INCLUDE	"slowdos.def"
-		INCLUDE	"syntax.def"
+		INCLUDE	"syntaxdefs.def"
 
 	;; Error functions
-		XREF	errorn
+		EXTERN	errorn
 
 
-		XREF	usezer
-		XREF	expt1n
+		EXTERN	usezer
+		EXTERN	expt1n
 
-		XREF	clufia
+		EXTERN	clufia
 
-		XREF	rdopen
-		XREF	rdblok
-		XREF	wropen
-		XREF	wrblok
-		XREF	wrclos
+		EXTERN	rdopen
+		EXTERN	rdblok
+		EXTERN	wropen
+		EXTERN	wrblok
+		EXTERN	wrclos
 	
-		XREF	wos
-		XREF	ros
+		EXTERN	wos
+		EXTERN	ros
 
 	;; Exported routines
-		XDEF	load
-		XDEF	save
-		XDEF	merge
-		XDEF	verify
-		XDEF	snpcnt
+		PUBLIC	load
+		PUBLIC	save
+		PUBLIC	merge
+		PUBLIC	verify
+		PUBLIC	snpcnt
 
-		XDEF	settapn
-		XDEF	settap
+		PUBLIC	settapn
+		PUBLIC	settap
 	
  
 command_type:	defb	0	; VARIABLE - command required

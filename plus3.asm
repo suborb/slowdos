@@ -13,20 +13,20 @@
 		MODULE		plus3
 		INCLUDE		"slowdos.def"
 
-		XREF		errorn
+		EXTERN		errorn
 
-		XDEF		sros
-		XDEF		sros1
-		XDEF		ros
+		PUBLIC		sros
+		PUBLIC		sros1
+		PUBLIC		ros
 
-		XDEF		swos
-		XDEF		swos1
-		XDEF		wos
+		PUBLIC		swos
+		PUBLIC		swos1
+		PUBLIC		wos
 
-		XDEF		dodos
-		XDEF		dcheat
-		XDEF		cjump
-		XDEF		xdpb
+		PUBLIC		dodos
+		PUBLIC		dcheat
+		PUBLIC		cjump
+		PUBLIC		xdpb
 
 	
 ;

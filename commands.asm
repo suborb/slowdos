@@ -13,43 +13,47 @@
 		INCLUDE "slowdos.def"
 	
 
-		XREF	syntax
-		XREF	readbyte
-		XREF	rout24
+		EXTERN	syntax
+		EXTERN	readbyte
+		EXTERN	rout24
 
-		XREF	mslog
-		XREF	hook_rdopen
-		XREF	hook_wropen
-		XREF    hook_erase
-		XREF	hook_mscat
-		XREF    hook_catmem	
-		XREF	rdbyte
-		XREF	rdblok
-		XREF	wrblok
-		XREF	wrbyte
-		XREF	wrclos
-		XREF	snpcnt
-		XREF	movsdie
-		XREF	dcheat	; Cheating bit in dodos
-		XREF	dodos
+		EXTERN	mslog
+		EXTERN	hook_rdopen
+		EXTERN	hook_wropen
+		EXTERN    hook_erase
+		EXTERN	hook_mscat
+		EXTERN    hook_catmem	
+		EXTERN	rdbyte
+		EXTERN	rdblok
+		EXTERN	wrblok
+		EXTERN	wrbyte
+		EXTERN	wrclos
+		EXTERN	snpcnt
+		EXTERN	movsdie
+		EXTERN	dcheat	; Cheating bit in dodos
+		EXTERN	dodos
 
 		
-		XREF	format
-		XREF	erase
-		XREF	load
-		XREF	merge
-		XREF	save
-		XREF	verify
-		XREF	poke
-		XREF	cat
-		XREF	copy
-		XREF	move
+		EXTERN	format
+		EXTERN	erase
+		EXTERN	load
+		EXTERN	merge
+		EXTERN	save
+		EXTERN	verify
+		EXTERN	poke
+		EXTERN	cat
+		EXTERN	copy
+		EXTERN	move
 
 
-		XDEF	rom3
-		XDEF	errorn
-		XDEF	synexe
-		XDEF	r_hxfer
+		PUBLIC	rom3
+		PUBLIC	errorn
+		PUBLIC	synexe
+		PUBLIC	runexe
+		PUBLIC	r_hxfer
+		PUBLIC	SFAIL0
+		PUBLIC	SFAIL2
+		PUBLIC	SFAIL2
 	
 		org	49152
 
@@ -337,3 +341,4 @@ write0:   dec   hl
           jp    z,copy  
           pop   hl  
           jp    scan1  
+

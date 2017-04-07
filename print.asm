@@ -13,14 +13,14 @@
 		MODULE	printing
 
 
-		XREF	cjump	; jp(hl)
-		XREF	rom3
+		EXTERN	cjump	; jp(hl)
+		EXTERN	rom3
 
-		XDEF	prhund
-		XDEF	print
-		XDEF	messag
-		XDEF	string
-		XDEF	setchan	
+		PUBLIC	prhund
+		PUBLIC	print
+		PUBLIC	messag
+		PUBLIC	string
+		PUBLIC	setchan	
 	
 
 ; Print a number out

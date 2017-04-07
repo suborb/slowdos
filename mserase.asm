@@ -12,35 +12,35 @@
 		MODULE	erase
 
 		INCLUDE	"slowdos.def"
-		INCLUDE	"syntax.def"
+		INCLUDE	"syntaxdefs.def"
 
 	;; Errors that we use
-		XREF	errorn
-		XREF	error_notfound
-		XREF	error_filetype
+		EXTERN	errorn
+		EXTERN	error_notfound
+		EXTERN	error_filetype
 	;; Other things
-		XREF	settapn
-		XREF	clfiln
-		XREF	clfilen
-		XREF	ckchar
+		EXTERN	settapn
+		EXTERN	clfiln
+		EXTERN	clfilen
+		EXTERN	ckchar
 
-		XREF	discan
-		XREF	disca0
+		EXTERN	discan
+		EXTERN	disca0
 
-		XREF	swos
-		XREF	swos1
+		EXTERN	swos
+		EXTERN	swos1
 
-		XREF	rdnxft
-		XREF	link_clusters	
-		XREF	wrfata
+		EXTERN	rdnxft
+		EXTERN	link_clusters	
+		EXTERN	wrfata
 
-		XREF	r_hxfer
-		XREF	uftofin
-		XREF	ckwild
+		EXTERN	r_hxfer
+		EXTERN	uftofin
+		EXTERN	ckwild
 
-		XDEF	hook_erase
-		XDEF	erase
-		XDEF	getdiroffset
+		PUBLIC	hook_erase
+		PUBLIC	erase
+		PUBLIC	getdiroffset
 
 
 fildes:		defs	12,32	; VARIABLE

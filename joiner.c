@@ -5,6 +5,10 @@
  */
 
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+static int parameter_search(char *name,char *target);
 
 unsigned char  booter[512 + 6912];  /* Won't be longer than that */
 
@@ -64,10 +68,9 @@ int main(int argc, char *argv[])
 
 
 /* Search through debris from z80asm for some important parameters */
-int parameter_search(char *name,char *target)
+static int parameter_search(char *name,char *target)
 {
     char    buffer[512];
-    char    dump[512];
     long    val=-1;
     FILE    *fp;
 
@@ -79,7 +82,7 @@ int parameter_search(char *name,char *target)
     /* Successfully opened the file so search through it.. */
     while ( fgets(buffer,512,fp) != NULL ) {
         if      (strncmp(buffer,target,strlen(target)) == 0 ) {
-            sscanf(buffer,"%s%s%lx",dump,dump,&val);
+            sscanf(buffer,"%*s%*s%*[ $]%lx",&val);
             break;
         }
     }

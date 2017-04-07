@@ -14,58 +14,58 @@
 
 		INCLUDE	"slowdos.def"
 
-		INCLUDE "syntax.def"
+		INCLUDE "syntaxdefs.def"
 
 
 
 		;; Routines that are external to this module
 
-		XREF	clfiln
-		XREF	settapn
-		XREF	errorn
+		EXTERN	clfiln
+		EXTERN	settapn
+		EXTERN	errorn
 
-		XREF	discan
-		XREF	disca0
-		XREF	ckchar
-		XREF	swos
-		XREF	clfilen
-		XREF	locimp
-		XREF	wrfata
-		XREF	rdnxft
-		XREF	swos1
-		XREF	getsec
-		XREF	uftofin
+		EXTERN	discan
+		EXTERN	disca0
+		EXTERN	ckchar
+		EXTERN	swos
+		EXTERN	clfilen
+		EXTERN	locimp
+		EXTERN	wrfata
+		EXTERN	rdnxft
+		EXTERN	swos1
+		EXTERN	getsec
+		EXTERN	uftofin
 
-		XREF	setchan
-		XREF	messag
-		XREF	confim
-		XREF	dodos
+		EXTERN	setchan
+		EXTERN	messag
+		EXTERN	confim
+		EXTERN	dodos
 
-		XREF	rdfat
-		XREF	clfil0
-		XREF	cfile1
-
-
-		XREF	sros
-
-		XREF	r_hxfer
+		EXTERN	rdfat
+		EXTERN	clfil0
+		EXTERN	cfile1
 
 
-		XDEF	file_signature
-		XDEF	error_filetype
-		XDEF	error_notfound
+		EXTERN	sros
 
-		XDEF	hook_rdopen
-		XDEF	rdopen
-		XDEF	rdope1
-		XDEF	ckext
-		XDEF	trdope
-		XDEF	pdconv
-		XDEF	rdblok
-		XDEF	rdbyte
-		XDEF	wrcopy
-		XDEF	rdini1
-		XDEF	rdcop1
+		EXTERN	r_hxfer
+
+
+		PUBLIC	file_signature
+		PUBLIC	error_filetype
+		PUBLIC	error_notfound
+
+		PUBLIC	hook_rdopen
+		PUBLIC	rdopen
+		PUBLIC	rdope1
+		PUBLIC	ckext
+		PUBLIC	trdope
+		PUBLIC	pdconv
+		PUBLIC	rdblok
+		PUBLIC	rdbyte
+		PUBLIC	wrcopy
+		PUBLIC	rdini1
+		PUBLIC	rdcop1
 	
 
           

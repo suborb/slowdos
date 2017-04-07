@@ -12,39 +12,39 @@
 		MODULE	catalogue
 
 		INCLUDE	"slowdos.def"
-		INCLUDE "syntax.def"
+		INCLUDE "syntaxdefs.def"
 		INCLUDE "printing.def"
 
 	;; External routines
-		XREF	clfilen
+		EXTERN	clfilen
 	;; Error handling
-		XREF	errorn
+		EXTERN	errorn
 
-		XREF	getsec
+		EXTERN	getsec
 	
-		XREF	sros
-		XREF	sros1
+		EXTERN	sros
+		EXTERN	sros1
 
-		XREF	swos
-		XREF	swos1
+		EXTERN	swos
+		EXTERN	swos1
 
-		XREF	rdnxft
+		EXTERN	rdnxft
 
-		XREF	r_hxfer
-		XREF	uftofin
+		EXTERN	r_hxfer
+		EXTERN	uftofin
 
-		XDEF	hook_catmem
-		XDEF	hook_mscat
-		XDEF	cat
-		XDEF	mslog	
-		XDEF	ncats3
-		XDEF	discan
-		XDEF	disca0
-		XDEF	cksub
-		XDEF	rdfat
-		XDEF	wrfata
-		XDEF	wrifat
-		XDEF	cfile1
+		PUBLIC	hook_catmem
+		PUBLIC	hook_mscat
+		PUBLIC	cat
+		PUBLIC	mslog	
+		PUBLIC	ncats3
+		PUBLIC	discan
+		PUBLIC	disca0
+		PUBLIC	cksub
+		PUBLIC	rdfat
+		PUBLIC	wrfata
+		PUBLIC	wrifat
+		PUBLIC	cfile1
 
        
 catdon:		defb	0	; VARIABLE - number of root dir slots catalogued
@@ -134,14 +134,16 @@ msclop:   ld    de,(cursec)
           bit   2,(hl)  
           jr    nz,root4  
           call  messag  
-          defm  "No files found" & 13 & 255
+          defm  "No files found"
+          defb  13, 255
 root4:    ld    a,13  
           call  print  		; Print a blank line
           call  free		; Calculate disc space free
           ld    b,255		; And then display it b = 255 indicates space
           call  prhund  
           call  messag  
-          defm  "K free" & 13 & 255         
+          defm  "K free"
+          defb  13, 255
           ret   
 
 
@@ -467,7 +469,8 @@ pricae:   push  hl  		; Save
           bit   4,(hl)  	; Test to see if directory
           jr    z,prica1	; No its not  
           call  messag  
-          defm  "<DIR>" & 255
+          defm  "<DIR>"
+          defb  255
           jr    prica2  	; Skip over file size priting
 prica1:   ld    a,32  		; Print a space
           call  print  

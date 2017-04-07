@@ -14,41 +14,41 @@
 
 		INCLUDE	"slowdos.def"
 
-		INCLUDE	"syntax.def"
+		INCLUDE	"syntaxdefs.def"
 		INCLUDE "printing.def"
 	
 	;; Errors that we
-		XREF	errorn	
-		XREF	error_filetype
-		XREF	error_notfound
+		EXTERN	errorn	
+		EXTERN	error_filetype
+		EXTERN	error_notfound
 	
 	;; Other things
-		XREF	settapn
-		XREF	settap
+		EXTERN	settapn
+		EXTERN	settap
 
-		XREF	clufia
-		XREF	clfilen
+		EXTERN	clufia
+		EXTERN	clfilen
 
-		XREF	ckext
-		XREF	ckwild
-		XREF	ckwild_length
+		EXTERN	ckext
+		EXTERN	ckwild
+		EXTERN	ckwild_length
 
 
-		XREF	rdopen
-		XREF	rdbyte
+		EXTERN	rdopen
+		EXTERN	rdbyte
 
-		XREF	wropen
+		EXTERN	wropen
 	
-		XREF	wrclos
+		EXTERN	wrclos
 
-		XREF	discan
-		XREF	mslog
+		EXTERN	discan
+		EXTERN	mslog
 		
 
-		XDEF	move
-		XDEF	movsdie
+		PUBLIC	move
+		PUBLIC	movsdie
 
-		XDEF	tapnam	; export the .TAP name
+		PUBLIC	tapnam	; export the .TAP name
 
 ; Move command
 ;

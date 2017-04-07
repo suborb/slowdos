@@ -13,35 +13,35 @@
 		MODULE		syntax
 		INCLUDE		"slowdos.def"
 
-		XREF		rom3		; We need this!
-		XREF		errorn
-		XREF		synexe
+		EXTERN		rom3		; We need this!
+		EXTERN		errorn
+		EXTERN		synexe
 
-		XDEF		cksemi
-		XDEF		getdrv
-		XDEF		getdrv1
-		XDEF		getdrv2
-		XDEF		gdrive
-		XDEF		chadd
+		PUBLIC		cksemi
+		PUBLIC		getdrv
+		PUBLIC		getdrv1
+		PUBLIC		getdrv2
+		PUBLIC		gdrive
+		PUBLIC		chadd
 
-		XDEF		error_nonsense
-		XDEF		error_filename
+		PUBLIC		error_nonsense
+		PUBLIC		error_filename
 
-		XDEF		ckend
-		XDEF		ckenqu
-		XDEF		syntax
+		PUBLIC		ckend
+		PUBLIC		ckenqu
+		PUBLIC		syntax
 		
-		XDEF		getnum
-		XDEF		usezer
+		PUBLIC		getnum
+		PUBLIC		usezer
 	
-		XDEF		rout24
-		XDEF		rout32
+		PUBLIC		rout24
+		PUBLIC		rout32
 
-		XDEF		readbyte
+		PUBLIC		readbyte
 	
-		XDEF		e32_1n
-		XDEF		expt1n
-		XDEF		exptex
+		PUBLIC		e32_1n
+		PUBLIC		expt1n
+		PUBLIC		exptex
 		
 
 ; Check to ensure that we have ";" or a "," before a filename variable

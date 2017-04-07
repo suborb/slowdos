@@ -12,40 +12,40 @@
 		MODULE	copy
 
 		INCLUDE	"slowdos.def"
-		INCLUDE	"syntax.def"
+		INCLUDE	"syntaxdefs.def"
 		INCLUDE	"printing.def"
 
 	;; Errors
-		XREF	errorn
+		EXTERN	errorn
 		
 
-		XREF	settap
-		XREF	settapn
+		EXTERN	settap
+		EXTERN	settapn
 
-		XREF	clufia
-		XREF	clfil0
-		XREF	clfilen
-		XREF	getst0
+		EXTERN	clufia
+		EXTERN	clfil0
+		EXTERN	clfilen
+		EXTERN	getst0
 
-		XREF	dodos
+		EXTERN	dodos
 
-		XREF	disca0
+		EXTERN	disca0
 	
-		XREF	wropen
-		XREF	wrbyte
-		XREF	wrclos
+		EXTERN	wropen
+		EXTERN	wrbyte
+		EXTERN	wrclos
 
-		XREF	trdope
-		XREF	rdope1
-		XREF	rdbyte
+		EXTERN	trdope
+		EXTERN	rdope1
+		EXTERN	rdbyte
 		
-		XREF	tapnam	;  msmove.asm
+		EXTERN	tapnam	;  msmove.asm
 
-		XREF	parse_p3name
-		XREF	filename_start
-		XREF	nsort
+		EXTERN	parse_p3name
+		EXTERN	filename_start
+		EXTERN	nsort
 
-		XDEF	copy
+		PUBLIC	copy
 
 
 
@@ -268,13 +268,15 @@ copy6:    call  messag  	; Print ip how many files were copied
           ld    b,255  	        ; Space lead the number
           call  prhund  
           call  messag  
-          defm  " file" & 255
+          defm  " file" 
+          defb  255
           ld    a,(copied)  ; Nice touch so that the English is correct
           dec   a  
           ld    a,'s'  
           call  nz,print  
           call  messag  
-          defm  " copied." & 13 & 255
+          defm  " copied." 
+          defb  13, 255
           ret   
           
           
@@ -446,7 +448,8 @@ prdfin:   push  de  	    ; Save it
           ld    a,255  	    ; Hack it so we don't wait for a scroll? prompt
           ld    (23692),a  
           call  messag      ; Print a silly DOS drive name
-          defm  "P*:" & 255
+          defm  "P*:" 
+          defb  255
           pop   de  
           ld    bc,12	    ; Filename length is 12 characters
           ld    hl,flags2	; Unless we're within a .TAP file

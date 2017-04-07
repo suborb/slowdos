@@ -10,46 +10,46 @@
 
 		MODULE	save
 		INCLUDE	"slowdos.def"
-		INCLUDE	"syntax.def"
+		INCLUDE	"syntaxdefs.def"
 
 	;; Routines that are external to this module
-		XREF	r_hxfer
-		XREF	uftofin
-		XREF	ckchar
+		EXTERN	r_hxfer
+		EXTERN	uftofin
+		EXTERN	ckchar
 
-		XREF	errorn
+		EXTERN	errorn
 
-		XREF	discan
-		XREF	cksub
-		XREF	seccle
+		EXTERN	discan
+		EXTERN	cksub
+		EXTERN	seccle
 
-		XREF	wrnxft
-		XREF	link_clusters
+		EXTERN	wrnxft
+		EXTERN	link_clusters
 
-		XREF	getsec
+		EXTERN	getsec
 
-		XREF	sros
-		XREF	swos
-		XREF	file_signature	
+		EXTERN	sros
+		EXTERN	swos
+		EXTERN	file_signature	
 
-		XREF	mslog
-		XREF	clfil0
-		XREF	wrcopy
-		XREF	rdini1
-		XREF	rdcop1
+		EXTERN	mslog
+		EXTERN	clfil0
+		EXTERN	wrcopy
+		EXTERN	rdini1
+		EXTERN	rdcop1
 
-		XREF	pdconv
-		XREF	getdiroffset
-		XREF	wrifat
+		EXTERN	pdconv
+		EXTERN	getdiroffset
+		EXTERN	wrifat
 
 
 	;; Labels that we export
-		XDEF	hook_wropen
-		XDEF	wropen
-		XDEF	wrblok
-		XDEF	wrbyte
-		XDEF	wrinit
-		XDEF	wrclos
+		PUBLIC	hook_wropen
+		PUBLIC	wropen
+		PUBLIC	wrblok
+		PUBLIC	wrbyte
+		PUBLIC	wrinit
+		PUBLIC	wrclos
 
 
 wrflen:		defw	0,0	; VARIABLE - writing file length

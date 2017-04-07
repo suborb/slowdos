@@ -14,23 +14,23 @@
 		MODULE	format
 
 		INCLUDE	"slowdos.def"
-		INCLUDE	"syntax.def"
+		INCLUDE	"syntaxdefs.def"
 
 	;; Other things
-		XREF	settapn
-		XREF	clfilen
+		EXTERN	settapn
+		EXTERN	clfilen
 
-		XREF	setchan
-		XREF	messag
+		EXTERN	setchan
+		EXTERN	messag
 
-		XREF	dodos
-		XREF	swos
+		EXTERN	dodos
+		EXTERN	swos
 
-		XREF	xdpb
+		EXTERN	xdpb
 
 
-		XDEF	format
-		XDEF	seccle
+		PUBLIC	format
+		PUBLIC	seccle
 
 	
 	

@@ -11,10 +11,10 @@
 
 		MODULE	poke
 
-		INCLUDE	"syntax.def"
+		INCLUDE	"syntaxdefs.def"
 
 
-		XDEF	poke
+		PUBLIC	poke
 	
 	
 ;

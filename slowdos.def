@@ -32,34 +32,34 @@
 
 
 	;; Variables we export
-		XREF	dirsec
-		XREF	discou
-		XREF	dispos
-		XREF	dirsol
-		XREF	sdclus
-		XREF	filen
+		EXTERN	dirsec
+		EXTERN	discou
+		EXTERN	dispos
+		EXTERN	dirsol
+		EXTERN	sdclus
+		EXTERN	filen
 
 
 	;; External variables
-		XREF	curdrv
-		XREF	chanel
-		XREF	catdon
-		XREF	cursec
-		XREF	fileno
-		XREF	curfat
-		XREF	frepos
-		XREF	ufia	
-		XREF	intafil
+		EXTERN	curdrv
+		EXTERN	chanel
+		EXTERN	catdon
+		EXTERN	cursec
+		EXTERN	fileno
+		EXTERN	curfat
+		EXTERN	frepos
+		EXTERN	ufia	
+		EXTERN	intafil
 
-		XREF	namep3
-		XREF	flags
-		XREF	flags2
-		XREF	flags3
-		XREF	pdname
-		XREF	rdflen
-		XREF	temphd
-		XREF	page
-		XREF	rotsta	; Start of root directory
-		XREF	rotlen	; Length of root directory
-		XREF	sectgo
-		XREF	secpos
+		EXTERN	namep3
+		EXTERN	flags
+		EXTERN	flags2
+		EXTERN	flags3
+		EXTERN	pdname
+		EXTERN	rdflen
+		EXTERN	temphd
+		EXTERN	page
+		EXTERN	rotsta	; Start of root directory
+		EXTERN	rotlen	; Length of root directory
+		EXTERN	sectgo
+		EXTERN	secpos

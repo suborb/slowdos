@@ -13,33 +13,33 @@
 		INCLUDE	"slowdos.def"
 
 
-		XREF	error_filename
+		EXTERN	error_filename
 
-		XREF	errorn
-		XREF	synexe
+		EXTERN	errorn
+		EXTERN	synexe
 
-		XDEF	getstr
-		XDEF	getst0
-		XDEF	plafil
-		XDEF	plafi0
-		XDEF	ckchar
-		XDEF	ckwild
-		XDEF	ckwild_length
+		PUBLIC	getstr
+		PUBLIC	getst0
+		PUBLIC	plafil
+		PUBLIC	plafi0
+		PUBLIC	ckchar
+		PUBLIC	ckwild
+		PUBLIC	ckwild_length
 
-		XDEF	parse_p3name
-		XDEF	filename_start
-		XDEF	nsort
+		PUBLIC	parse_p3name
+		PUBLIC	filename_start
+		PUBLIC	nsort
 
-		XDEF	clufia
-		XDEF	clfilen
-		XDEF	clfiln
-		XDEF	clfil0
+		PUBLIC	clufia
+		PUBLIC	clfilen
+		PUBLIC	clfiln
+		PUBLIC	clfil0
 
-		XDEF	uftofin
+		PUBLIC	uftofin
 
-		XREF	rom3
-		XREF	wrinit
-		XREF	wrcopy
+		EXTERN	rom3
+		EXTERN	wrinit
+		EXTERN	wrcopy
 
 
 
@@ -224,7 +224,8 @@ ckcha3:   cp   (hl)
 
 
 
-badcha:   defm   "!&()+,-./:;<=>[\]|" & 128
+badcha:   defm   "!&()+,-./:;<=>[\]|" 
+	  defb  128
           
 
 ; Check to see if a filename is wild

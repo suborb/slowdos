@@ -9,9 +9,9 @@
 ;       Defines for printing
 
 
-		XREF	prhund
-		XREF	print
-		XREF	messag
-		XREF	string
-		XREF	setchan	
+		EXTERN	prhund
+		EXTERN	print
+		EXTERN	messag
+		EXTERN	string
+		EXTERN	setchan	
 	

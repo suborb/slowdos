@@ -14,10 +14,10 @@
 
 		INCLUDE	"slowdos.def"
 
-		XDEF	rdnxft
-		XDEF	wrnxft
-		XDEF	link_clusters
-		XDEF	getsec
+		PUBLIC	rdnxft
+		PUBLIC	wrnxft
+		PUBLIC	link_clusters
+		PUBLIC	getsec
 
 
 ;Find next FAT when reading

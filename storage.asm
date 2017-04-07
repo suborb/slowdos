@@ -11,28 +11,28 @@
 
 		MODULE	storage
 
-		XDEF	curdrv
-		XDEF	ufia
-		XDEF	chanel
-		XDEF	temphd
-		XDEF	rdflen
-		XDEF	wrflen
-		XDEF	page
-		XDEF	namep3
-		XDEF	pdname
-		XDEF	curfat
-		XDEF	flags
-		XDEF	flags2
-		XDEF	flags3
-		XDEF	rotsta
-		XDEF	rotlen
-		XDEF	fileno
-		XDEF	frepos
-		XDEF	dirsec
-		XDEF	dirsol
-		XDEF	sdclus
-		XDEF	filen
-		XDEF	intafil
+		PUBLIC	curdrv
+		PUBLIC	ufia
+		PUBLIC	chanel
+		PUBLIC	temphd
+		PUBLIC	rdflen
+		PUBLIC	wrflen
+		PUBLIC	page
+		PUBLIC	namep3
+		PUBLIC	pdname
+		PUBLIC	curfat
+		PUBLIC	flags
+		PUBLIC	flags2
+		PUBLIC	flags3
+		PUBLIC	rotsta
+		PUBLIC	rotlen
+		PUBLIC	fileno
+		PUBLIC	frepos
+		PUBLIC	dirsec
+		PUBLIC	dirsol
+		PUBLIC	sdclus
+		PUBLIC	filen
+		PUBLIC	intafil
 
 
 
