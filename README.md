@@ -345,6 +345,7 @@ major emulators.
 
 The format of the file is as follows:
 
+```
 Offset         Bytes     Description
 
 0                1         i
@@ -364,7 +365,7 @@ Offset         Bytes     Description
 25               1         Intmode (0=im0/1=im2/2=im2)
 26               1         Border colour
 27               49152     Ram dump (16384...65535)
-
+```
 
 
 Appendix II - System calls
