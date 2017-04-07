@@ -1,6 +1,4 @@
-              Slowdos v2.4 - 24.02.2001 (Full version)
-              ----------------------------------------
-
+# Slowdos
 
 Slowdos v2.x  (hereafter referred to as Slowdos), is an
 extension to +3 BASIC which allows MSDOS discs to be read
@@ -16,8 +14,7 @@ Enter in here Slowdos, the program which allows all manner of
 functions to be performed on MSDOS discs from BASIC.
 
 
-                     System Requirements
-                     -------------------
+## System Requirements
 
 Slowdos will run on any +2a or +3 (hopefully regardless of
 issue), however for practical usage a +3 with an external
@@ -33,8 +30,7 @@ drives, although they to all intents and purposes obsolete, but
 I make no guarantees as to data integrity.
 
 
-                       The new commands
-                       ----------------
+## The new commands
 
 A definitive list of commands now follows, it is not intented
 to be a tutorial as to how to use them, it is presumed that the
@@ -53,8 +49,7 @@ ss   = stream number
 All parameters in parenthesis [ ] are optional.
 
 
-                  Essential disc filing commands
-                  ------------------------------
+### Essential disc filing commands
 
 CAT [#ss,]dd"f"
 
@@ -102,8 +97,7 @@ ease of use of Slowdos formatted discs on other machines.
 
 
 
-                      Advanced disc commands
-                      ----------------------
+### Advanced disc commands
 
 ERASE Pdd"u1" TO "u2"    
 
@@ -168,8 +162,7 @@ Once inside a subdirectory, usage of Slowdos is not affected,
 it is still possible to load/save/copy/rename etc files.
 
 
-                      Compatibility Commands
-                      ----------------------
+### Compatibility Commands
 
 VERIFY Ddd"f"
 
@@ -186,8 +179,7 @@ uses - try POKE 60433,col and POKE 60431,col to change the
 editing colours for the top and bottom of the screen.
 
 
-              Accessing Spectrum Emulator Files
-              ---------------------------------
+## Accessing Spectrum Emulator Files
 
 Slowdos accesses a number of file formats used by emulators on
 other machines. The most common of these is the snapshot file,
@@ -263,8 +255,7 @@ copy files into a .TAP file from an MSDOS disc (and vice
 versa).
 
 
-                           Usage of drives
-                           ---------------
+## Usage of drives
 
 Throughout the list of commands reference has been made to
 drive numbers, however, since the +3 only supports one external
@@ -283,8 +274,7 @@ BFORMAT +3 discs. (Obviously it is possible to reformat these
 discs for use by Slowdos).
 
 
-                        Error messages
-                        --------------
+## Error messages
 
 All of the routines are fully error trapped and will return to
 BASIC with a harmless error message should anything untoward
@@ -292,8 +282,7 @@ occur. In addition the RIC messages from +3 DOS have been
 disposed of, any errors now result in an error message.
 
 
-                         General notes
-                         -------------
+## General notes
 
 It is well known that the +3 has problems driving certain
 printers. A set of pokes was found which solved the problem,
@@ -313,14 +302,12 @@ interesting manner! It also uses some additional space in page
 may cause some problems with other programs.
 
 
-                    Known bugs/feechures
-                    --------------------
+## Known bugs/feechures
 
 Because of the +3 CAT syntax problem any CAT phrase involving a numeric variable will not be able to be entered unless the variable(s) exists. All other comands are unaffected, so the value of remedying it seems dubious.
 
 
-                           History
-                           -------
+## History
 
 v1.0      Original version of program released back in 1994
 ??.8.94
@@ -410,6 +397,7 @@ Exit parameters:    de=address of header in page 7
 Get the address of the file header in page 7, this is 7 byte
 block ala +3 DOS as is arranged as follows:
 
+```
 |----------------|-----|-----|-----|-----|-----|-----|-----|
 |   Byte         |  0  |  1  |  2  |  3  |  4  |  5  |  6  |
 |----------------|-----|-----|-----|-----|-----|-----|-----|
@@ -420,12 +408,15 @@ block ala +3 DOS as is arranged as follows:
 |Snapshot        |  4  |File length| xxx | xxx | xxx | xxx |
 |Longfile        |  5  |   32 bit file length  | xxx | xxx |
 |----------------|-----|-----------------|-----|-----|-----|
+```
 
 
 3, r_rdopen
 
+```
 Entry parameters:   ix=ufia
 Exit parameters:    standard
+```
 
 Open a file on the MSDOS disc for reading. If the file has a
 standard +3 header, then this header is recognized, and the
@@ -436,18 +427,22 @@ it is a CODE file with load address 0.
 
 4, r_rdbyte
 
+```
 Entry parameters:   none
 Exit parameters:    a=byte
+```
 
 Read a byte from the currently open file.
 
 
 5, r_rdblok
 
+```
 Entry parameters:   de=address to load to
                     bc=number of bytes to read
                      h=page to load to
 Exit parameters:    none
+```
 
 Read a chunk of code from the currently open file to memory in
 the page given by h
@@ -455,33 +450,41 @@ the page given by h
 
 6, r_wropen
 
+```
 Entry parameters:   ix=ufia
 Exit parameters:    none
+```
 
 Open a file for reading, if the filetype in the ufia is specified as type 5, then no +3DOS style header will be created.
 
 
 7, r_wrbyte
 
+```
 Entry parameters:   a=byte to write
 Exit parameters:    none
+```
 
 Write the byte in a to the currently open file
 
 
 8, r_wrblok
 
+```
 Entry parameters:   de=address of block
                     bc=length of block
                      h=RAM page
+```
 
 Write a block of memory to disc
 
 
 9, r_wrclos
 
+```
 Entry parameters:   none
 Exit parameters:    none
+```
 
 Close the currently open file, write the directory entry and
 FAT.
@@ -489,16 +492,20 @@ FAT.
 
 10, r_erase
 
+```
 Entry parameters:   ix=ufia
 Exit parameters:    none
+```
 
 Erase the files specified by the ufia - may be wild
 
 
 11, r_snpload
 
+```
 Entry parameters:   none
 Exit parameters:    none
+```
 
 Load the currently open reading file as a snapshot file, and
 execute accordingly.
@@ -506,8 +513,10 @@ execute accordingly.
 
 12, r_mscat
 
+```
 Entry parameters:   ix=ufia
 Exit parameters:    none
+```
 
 Catalogue a disc directory matching the specifications of the
 ufia.
@@ -515,9 +524,11 @@ ufia.
 
 13, r_mscatmem
 
+```
 Entry parameters:   ix=ufia
                     de=address to place catalogue
 Exit parameters:    none
+```
 
 Catalogue the disc to an address in memory - make sure you
 have sufficient room for the catalogue!!! Initialise the memory
@@ -526,12 +537,14 @@ with 0 before hand!!!
 The format of the data supplied by the disc is unsorted and
 is as follows:
 
+```
 byte 0    - number of files in directory (0-255)
 The filename information is as follows:
      ds   11   - filename (without the ".")
      ds   1    - directory flags
      ds   2    - first cluster
      ds   4    - file length (32 bit)
+```
 
 - As can be seen, each directory entry requires 18 bytes of
 space - this can amount to a lot - the routine does not respect
@@ -540,9 +553,11 @@ Slowdos code.
 
 14,  r_seldir
 
+```
 Entry parameters:   de=path name
                     bc=length of path name
 Exit parameters:    none
+```
 
 Move to the directory described by that in de
 
@@ -557,6 +572,7 @@ much at a premium!
 The ufia (User File Information Area) is 20 bytes long and is
 ordered as follows:
 
+```
      +0   db   drive (0,1) (irrelevant)
      +1   db   stream (for r_mscat)
      +2   ds   filename (12 characters including ".")
@@ -565,7 +581,7 @@ ordered as follows:
      +16  dw   filelength               } +3 header info
      +18  dw   start address/LINE/name  }
      +18  dw   offset to BASIC          }
-
+```
 
 
 Appendix III - Bonus program, Snapconv
@@ -591,5 +607,3 @@ Extension      CODE parameters
      .3        24576,40960 Main code
 
 It is then up to you to use the parts as you desire!!
-
-EOF
