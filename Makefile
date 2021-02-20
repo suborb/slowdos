@@ -9,7 +9,7 @@ all:	master
 
 master:  joiner commands.bin booter.bin
 	./joiner
-	appmake +zx -b slowdos.bin --org  32768 -o slowdos.tap
+	z88dk-appmake +zx -b slowdos.bin --org  32768 -o slowdos.tap
 
 joiner: joiner.c
 	gcc $^ -g -o $@

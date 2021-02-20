@@ -14,7 +14,7 @@ Enter in here Slowdos, the program which allows all manner of
 functions to be performed on MSDOS discs from BASIC.
 
 
-## System Requirements
+## System Requirements
 
 Slowdos will run on any +2a or +3 (hopefully regardless of
 issue), however for practical usage a +3 with an external
@@ -30,7 +30,7 @@ drives, although they to all intents and purposes obsolete, but
 I make no guarantees as to data integrity.
 
 
-## The new commands
+## The new commands
 
 A definitive list of commands now follows, it is not intented
 to be a tutorial as to how to use them, it is presumed that the
@@ -97,7 +97,7 @@ ease of use of Slowdos formatted discs on other machines.
 
 
 
-### Advanced disc commands
+### Advanced disc commands
 
 ERASE Pdd"u1" TO "u2"    
 
@@ -242,7 +242,7 @@ use it you can either copy files to it, or save files into it.
 To close the .TAP file (when all the files are enclosed) do a
 MOVE TO Tdd. The file will automatically be closed, and the
 directory entry written. Please note that if you forget to do
-this, then the .TAP will not be accessable, but space on the
+this, then the .TAP will not be accessible, but space on the
 disc will have been allocated.
 
 As a little note to avoid any potential confusion, if you are
@@ -255,7 +255,7 @@ copy files into a .TAP file from an MSDOS disc (and vice
 versa).
 
 
-## Usage of drives
+## Usage of drives
 
 Throughout the list of commands reference has been made to
 drive numbers, however, since the +3 only supports one external
@@ -274,7 +274,7 @@ BFORMAT +3 discs. (Obviously it is possible to reformat these
 discs for use by Slowdos).
 
 
-## Error messages
+## Error messages
 
 All of the routines are fully error trapped and will return to
 BASIC with a harmless error message should anything untoward
@@ -282,7 +282,7 @@ occur. In addition the RIC messages from +3 DOS have been
 disposed of, any errors now result in an error message.
 
 
-## General notes
+## General notes
 
 It is well known that the +3 has problems driving certain
 printers. A set of pokes was found which solved the problem,
@@ -307,7 +307,7 @@ may cause some problems with other programs.
 Because of the +3 CAT syntax problem any CAT phrase involving a numeric variable will not be able to be entered unless the variable(s) exists. All other comands are unaffected, so the value of remedying it seems dubious.
 
 
-## History
+## History
 
 v1.0      Original version of program released back in 1994
 ??.8.94

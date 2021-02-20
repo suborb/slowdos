@@ -517,7 +517,7 @@ mecntl:   ld    bc,(temphd+1)
 
 ; Save file routine
 sacntl:  
-	  push  hl  		; hl = save address
+          push  hl  		; hl = save address
 sacntl1:  call  wropen  	; Open the file
           pop   de  		; Get the save address back
           ld    c,(ix+16)  	; Pick up the length from the ufia
